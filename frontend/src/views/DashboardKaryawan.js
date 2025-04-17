@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import {FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight, FaRegSave, FaHistory, FaCheckCircle, FaTimesCircle} from 'react-icons/fa'; 
+import {FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight, FaRegSave, FaHistory, FaCheckCircle, FaTimesCircle, FaCoins} from 'react-icons/fa'; 
 import axios from "axios";
 import { useHistory, useLocation } from "react-router-dom"; 
 import { toast } from 'react-toastify';
@@ -28,6 +28,7 @@ import {
   Form,
   Spinner, 
   Button,
+  Modal
 } from "react-bootstrap";
 
 function DashboardKaryawan() {
@@ -72,6 +73,8 @@ function DashboardKaryawan() {
   const [pinjamanInfo, setPinjamanInfo] = useState(null);
 
   const plafondFloat = parseFloat(plafond);
+  let [kekuranganRasio] = useState(0);
+  let [kekuranganAngsuran] = useState(0);
 
   const [plafondSaatIni, setPlafondSaatIni] = useState(0); 
   const plafondSaatIniFloat = parseFloat(plafondSaatIni);
@@ -91,6 +94,16 @@ function DashboardKaryawan() {
   const storedJumlahPinjaman = localStorage.getItem("jumlah_pinjaman");
 
   const token = localStorage.getItem("token");
+  const [showAddModal, setShowAddModal] = React.useState(false);
+
+  const [id_plafond, setIdPlafond] = useState("");
+  const [tanggal_penetapan, setTanggalPenetapan] = useState("");
+  const [jumlah_plafond, setJumlahPlafond] = useState("");
+  const [keterangan, setKeterangan] = useState("");
+
+  const [jumlah_topup, setJumlahTopupAngsuran] = useState("");
+  const [file, setFile] = useState(null);
+  const [jumlah_angsuranbaru, setJumlahAngsuranBaru] = useState("");
 
   const formatTanggal = (tanggal) => {
     if (!tanggal) return "";
@@ -481,6 +494,35 @@ useEffect(() => {
     setJumlahPinjaman(numericValue);
   };
 
+  const handleJumlahTopUp = (value) => {
+    const numericValue = value.replace(/\D/g, "");
+    setJumlahTopupAngsuran(numericValue);
+  };
+
+  const handleAngsuranBaru = (value) => {
+    const numericValue = value.replace(/\D/g, "");
+    setJumlahAngsuran(numericValue);
+  };
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleFileUpload = () => {
+      if (!file) {
+        toast.error("Silakan pilih file PDF terlebih dahulu.");
+        return;
+      }
+      if (file.type !== "text/pdf") {
+        toast.error("File harus berformat PDF.");
+        return;
+      }
+  
+      const formData = new FormData();
+      formData.append("pdffile", file);
+
+    };
+
 
   const calculateYearsAndMonth = (tanggalMasuk) => {
     const currentDate = new Date();
@@ -586,6 +628,20 @@ useEffect(() => {
     setPlafondBaru(plafondSaatIni); 
 
   }
+
+  if (calculaterasio_angsuran(jumlah_pinjaman, gajiPokok) > 20 ||
+  rasio_angsuran > 20) {
+  console.log("Hasil calculate rasio angsuran: ", calculaterasio_angsuran(jumlah_pinjaman, gajiPokok));
+  console.log("Rasio angsuran: ", rasio_angsuran);
+
+  const persen20 = gajiPokok * 20/100;
+  const kekuranganRasio = (rasio_angsuran - 20).toFixed(2);
+  const kekuranganAngsuran = jumlah_angsuran - persen20;
+
+  console.log("20% gaji: ", persen20);
+  console.log("Kekurangan rasio angsuran: ", kekuranganRasio);
+  console.log("Kekurangan angsuran: ", kekuranganAngsuran);
+  }
 }, [
   plafondSaatIni,
   plafond,
@@ -608,8 +664,8 @@ useEffect(() => {
     const isDeclined =
       calculateYears(tanggal_masuk) < 5 ||
 
-      calculaterasio_angsuran(jumlah_pinjaman, gajiPokok) > 20 ||
-      rasio_angsuran > 20 ||
+      // calculaterasio_angsuran(jumlah_pinjaman, gajiPokok) > 20 ||
+      // rasio_angsuran > 20 ||
       calculatePensiun(tanggal_lahir, jenis_kelamin) < 6 
 
       if(isDeclined) return "Decline";
@@ -703,7 +759,43 @@ useEffect(() => {
 
   // console.log("Total pinjaman: ", totalPinjaman); 
   // console.log("Total sudah dibayar: ", totalDibayar); 
-  
+
+
+  const handleAddSuccess = () => {
+    // getPlafond();
+    toast.success("Data plafond berhasil ditambahkan!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+    });
+};
+
+const savePlafond = async (e) => {
+  e.preventDefault();
+  try {
+      await axios.post('http://10.70.10.139:5000/plafond', {
+          id_plafond,
+          tanggal_penetapan,
+          jumlah_plafond,
+          keterangan,
+      }, {
+          headers: {
+              Authorization: `Bearer ${token}`,
+          },
+      });
+      setShowAddModal(false); 
+      onSuccess(); 
+      
+  } catch (error) {
+      // console.log(error.message);
+      toast.error('Gagal menyimpan data plafond baru.', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: true,
+        });
+  }
+};
+
   return (
     <>
       {loading === false ? 
@@ -723,6 +815,9 @@ useEffect(() => {
         </div>
         <Container fluid>
           <Heartbeat/>
+          <div>         
+             {/* <Permohonan showAddModal={showAddModal} setShowAddModal={setShowAddModal} onSuccess={handleAddSuccess} /> */}
+          </div>
           <Row>
             <Col md="12">
               <Card className="p-4">
@@ -1100,7 +1195,35 @@ useEffect(() => {
                           <tr>
                             <td className="text-center">Angsuran</td>
                             <td className="text-center">Persentase angsuran max 20% dari gaji pokok</td>
-                            <td className="text-center">{rasio_angsuran} %</td>
+                            <td className="text-center">
+                              {"Rasio Angsuran: " + rasio_angsuran} % <br/>
+                              {"Max Angsuran Seharusnya: Rp " + formatRupiah(gajiPokok*20 / 100)} <br/><br/>
+
+                              {"Angsuran Saat Ini: Rp " + formatRupiah(jumlah_angsuran)} <br/>
+                              {"Kekurangan Rasio Angsuran: " + (rasio_angsuran - 20).toFixed(2)} % <br/>
+                              {"Kekurangan Angsuran: Rp " + formatRupiah(jumlah_angsuran - (gajiPokok * 20/100))} <br/><br/>
+
+                              <Button
+                                className="btn-fill pull-right warning"
+                                variant="warning"
+                                onClick={() => {
+                                  setShowAddModal(true);
+                                  // setSelectedAngsuran(angsuran); 
+                                }}
+                                // style={{
+                                //   display: 
+                                //   hidePelunasanButton(angsuran, angsuranList)
+                                //   ? 'none' 
+                                //   : 'inline-block',
+                                //   width: 125,
+                                //   fontSize: 14,
+                                // }}
+                                // hidden={role === "Finance"}
+                                >
+                                <FaCoins style={{ marginRight: '8px' }}/>
+                                Ajukan Permohonan
+                              </Button>
+                            </td>
                             <td className="text-center">
                             {
                               id_karyawan ? (
@@ -1152,6 +1275,103 @@ useEffect(() => {
             </div>
           </>
         )}
+
+         <Modal
+              className="modal-primary"
+              show={showAddModal}
+              onHide={() => setShowAddModal(false)}
+          >
+              <Modal.Header className="text-center pb-1">
+                  <h3 className="mt-3 mb-0">Form Permohonan Top-up Angsuran</h3>
+              </Modal.Header>
+              <Modal.Body className="text-left pt-0">
+                  <hr />
+                  <Form onSubmit={savePlafond}>
+                  <Card> 
+                      <Card.Header as="h4" className="mt-1"><strong>Top-up Angsuran</strong></Card.Header><hr/>
+                      <Card.Body>
+                          <Card.Text>
+                              Merupakan kondisi dimana keluarga calon peminjam diperbolehkan untuk membantu <strong>meningkatkan jumlah angsuran per-bulan</strong> untuk mencapai jumlah pinjaman yang diperlukan.
+                          </Card.Text>
+                      </Card.Body>
+                  </Card>
+                  <span className="text-danger required-select">(*) Wajib diisi.</span>
+                      <Row>
+                          <Col md="12">
+                              <Form.Group>
+                              {/* <span className="text-danger">*</span> */}
+                                  <label>Kelebihan Persentase Angsuran (per-bulan)</label>
+                                  <Form.Control
+                                      type="text"
+                                      value={(rasio_angsuran - 20).toFixed(2) + " %"}
+                                      readOnly
+                                  />
+                              </Form.Group>
+                          </Col>
+                      </Row>
+                      <Row>
+                          <Col md="12">
+                              <Form.Group>
+                              {/* <span className="text-danger">*</span> */}
+                                  <label>Kekurangan Angsuran</label>
+                                  <Form.Control
+                                      type="text"
+                                      value={"Rp " + formatRupiah(jumlah_angsuran - (gajiPokok * 20/100))}
+                                      readOnly
+                                  />
+                              </Form.Group>
+                          </Col>
+                      </Row>
+                      <Row>
+                          <Col md="12">
+                              <Form.Group>
+                              <span className="text-danger">*</span>
+                                  <label>Jumlah Top-up Angsuran</label>
+                                  <Form.Control
+                                      placeholder="Rp"
+                                      type="text"
+                                      required
+                                      value={formatRupiah(jumlah_topup)}
+                                      onChange={(e) => handleJumlahTopUp(e.target.value)}
+                                  />
+                              </Form.Group>
+                          </Col>
+                      </Row>
+                      <Row>
+                          <Col md="12">
+                              <Form.Group>
+                              {/* <span className="text-danger">*</span> */}
+                                  <label>Jumlah Angsuran Setelah Top-up</label>
+                                  <Form.Control
+                                      type="text"
+                                      disabled
+                                      value={formatRupiah(jumlah_angsuran + jumlah_topup)}
+                                      onChange={(e) => handleAngsuranBaru(e.target.value)}
+                                  />
+                              </Form.Group>
+                          </Col>
+                      </Row>
+                      <Row>
+                          <Col md="12">
+                              <Form.Group>
+                              <span className="text-danger">*</span>
+                                  <label>Unggah Surat Pernyataan</label>
+                                  <input type="file" accept=".pdf" onChange={handleFileChange} />
+                              </Form.Group>
+                          </Col>
+                      </Row>
+                      <Row>
+                          <Col md="12">
+                              <div className="modal-footer d-flex flex-column">
+                                  <Button className="btn-fill w-100 mt-3" type="submit" variant="primary" onClick={handleFileUpload}>
+                                      Simpan
+                                  </Button>
+                              </div>
+                          </Col>
+                      </Row>
+                  </Form>
+              </Modal.Body>
+          </Modal>
     </>
 
   );

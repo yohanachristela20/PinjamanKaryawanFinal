@@ -30,6 +30,7 @@ import {
   Button,
   Modal
 } from "react-bootstrap";
+import { error } from "jquery";
 
 function DashboardKaryawan() {
 
@@ -509,19 +510,39 @@ useEffect(() => {
   };
 
   const handleFileUpload = () => {
-      if (!file) {
-        toast.error("Silakan pilih file PDF terlebih dahulu.");
-        return;
-      }
-      if (file.type !== "text/pdf") {
-        toast.error("File harus berformat PDF.");
-        return;
-      }
-  
-      const formData = new FormData();
-      formData.append("pdffile", file);
+    if (!file) {
+      toast.error("Silakan pilih file PDF terlebih dahulu.");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("File harus berformat PDF.");
+      return;
+    }
 
-    };
+    const formData = new FormData();
+    formData.append("pdf-file", file);
+    formData.append("id_pinjaman", id_pinjaman);
+
+    fetch("http://10.70.10.139:5000/upload-pernyataan", {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+    },
+    })
+    .then(async (response) => {
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal mengunggah.");
+      }
+      toast.success("File berhasil diunggah.");
+      setShowImportModal(false);
+      onSuccess();
+    })
+    .catch((error) => {
+      toast.error(`Gagal: ${error.message}`);
+    });
+  };
 
 
   const calculateYearsAndMonth = (tanggalMasuk) => {
@@ -1291,7 +1312,16 @@ const savePlafond = async (e) => {
                       <Card.Header as="h4" className="mt-1"><strong>Top-up Angsuran</strong></Card.Header><hr/>
                       <Card.Body>
                           <Card.Text>
-                              Merupakan kondisi dimana keluarga calon peminjam diperbolehkan untuk membantu <strong>meningkatkan jumlah angsuran per-bulan</strong> untuk mencapai jumlah pinjaman yang diperlukan.
+                              <p>Merupakan kondisi dimana keluarga calon peminjam <strong>SETUJU</strong> untuk<strong> meningkatkan jumlah angsuran per-bulan yang dipotong dari gaji karyawan peminjam</strong> untuk mencapai jumlah pinjaman yang diperlukan.</p>
+                              <p>Silakan mengunggah Surat Pernyataan yang telah ditandatangani oleh:
+                              </p>
+                              <ol>
+                                  <li>Karyawan Peminjam</li>
+                                  <li>Perwakilan Keluarga Karyawan (suami/istri)</li>
+                                  <li>Manager/Supervisor/Kabag</li>
+                                  <li>Direktur Keuangan</li>
+                                  <li>Presiden Direktur</li>
+                                </ol>
                           </Card.Text>
                       </Card.Body>
                   </Card>
@@ -1322,7 +1352,7 @@ const savePlafond = async (e) => {
                               </Form.Group>
                           </Col>
                       </Row>
-                      <Row>
+                      {/* <Row>
                           <Col md="12">
                               <Form.Group>
                               <span className="text-danger">*</span>
@@ -1331,23 +1361,26 @@ const savePlafond = async (e) => {
                                       placeholder="Rp"
                                       type="text"
                                       required
-                                      value={formatRupiah(jumlah_topup)}
+                                      value={"Rp " + formatRupiah(jumlah_topup)}
                                       onChange={(e) => handleJumlahTopUp(e.target.value)}
                                   />
                               </Form.Group>
                           </Col>
-                      </Row>
+                      </Row> */}
                       <Row>
                           <Col md="12">
                               <Form.Group>
                               {/* <span className="text-danger">*</span> */}
-                                  <label>Jumlah Angsuran Setelah Top-up</label>
+                                  <label>Jumlah Angsuran (per-bulan) Setelah Top-up</label>
                                   <Form.Control
                                       type="text"
                                       disabled
-                                      value={formatRupiah(jumlah_angsuran + jumlah_topup)}
-                                      onChange={(e) => handleAngsuranBaru(e.target.value)}
+                                      value={"Rp " + formatRupiah(parseInt(gajiPokok*20 / 100) + parseInt(jumlah_angsuran - (gajiPokok * 20/100)))}
+                                      // value={"Rp " + formatRupiah(parseInt(gajiPokok*20 / 100) + parseInt(jumlah_topup) || jumlah_angsuran)}
+                                      // onChange={(e) => (parseInt(e.target.value) + parseInt(jumlah_topup))}
+                                    
                                   />
+                                   {/* <div>{(parseInt(jumlah_angsuran) + parseInt(jumlah_topup))}</div> */}
                               </Form.Group>
                           </Col>
                       </Row>
@@ -1363,7 +1396,7 @@ const savePlafond = async (e) => {
                       <Row>
                           <Col md="12">
                               <div className="modal-footer d-flex flex-column">
-                                  <Button className="btn-fill w-100 mt-3" type="submit" variant="primary" onClick={handleFileUpload}>
+                                  <Button className="btn-fill w-100 mt-3" variant="primary" onClick={handleFileUpload}>
                                       Simpan
                                   </Button>
                               </div>

@@ -23,6 +23,7 @@ const Pinjaman = db.define('pinjaman', {
     status_transfer: DataTypes.STRING,
     status_pelunasan: DataTypes.STRING,
     not_compliant: DataTypes.BOOLEAN, 
+    filepath_pernyataan: DataTypes.STRING,
     id_peminjam: {
         type: DataTypes.INTEGER,
         

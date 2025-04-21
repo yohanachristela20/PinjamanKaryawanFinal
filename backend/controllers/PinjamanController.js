@@ -7,8 +7,38 @@ import db from "../config/database.js";
 import { Sequelize, Op, where } from "sequelize";
 import nodemailer from "nodemailer"; 
 import dotenv from "dotenv";
+import fs from 'fs';
+import multer from 'multer';
 
 dotenv.config();
+
+const uploadFilePernyataan = './uploads/files';
+
+if (!fs.existsSync(uploadFilePernyataan)) {
+  fs.mkdirSync(uploadFilePernyataan, {recursive: true});
+}  
+
+const storagePernyataan = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadFilePernyataan);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const uploadPernyataan = multer({
+  storage: storagePernyataan,
+  limits: { fileSize: 2000000 },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype === 'application/pdf') {
+        cb(null, true);
+      } else {
+        cb(new Error('File harus berformat PDF.'));
+      }
+    },
+  }).single('pdf-file');
+
 
 export const getPinjaman = async(req, res) => {
     try {
@@ -178,6 +208,34 @@ export const createPinjaman = async (req, res) => {
             validationErrors: error.errors || [] 
         });
     }
+
+    uploadPernyataan(req, res, async(err) => {
+      if(err){
+        return res.status(400).json({success: false, message: err.message});
+      } 
+  
+      const filePath = path.join('uploads/files', req.file.filename);
+  
+      try {
+        const {id_pinjaman} = req.body;
+        console.log("id_pinjamann:", id_pinjaman);
+        if(!id_pinjaman) {
+          return res.status(400).json({success: false, message: 'Id pinjaman tidak ditemukan.'});
+        }
+  
+        const pinjaman = await Pinjaman.findByPk(id_pinjaman);
+        if(!pinjaman) {
+          return res.status(400).json({success: false, message: 'Data pinjaman tidak ditemukan.'});
+        }
+  
+        pinjaman.filepath_pernyataan = filePath;
+        await pinjaman.save();
+  
+        res.json({success: true, message: 'File berhasil disimpan.'});
+      } catch (error) {
+        res.status(500).json({success: false, message: error.message});
+      }
+    });
 };
 
 const sendEmailNotification = async(pinjaman) => {

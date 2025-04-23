@@ -9,35 +9,10 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import fs from 'fs';
 import multer from 'multer';
+import { uploadPernyataan } from "../middlewares/UploadPernyataan.js";
+import path from "path";
 
 dotenv.config();
-
-const uploadFilePernyataan = './uploads/files';
-
-if (!fs.existsSync(uploadFilePernyataan)) {
-  fs.mkdirSync(uploadFilePernyataan, {recursive: true});
-}  
-
-const storagePernyataan = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadFilePernyataan);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const uploadPernyataan = multer({
-  storage: storagePernyataan,
-  limits: { fileSize: 2000000 },
-    fileFilter: (req, file, cb) => {
-      if (file.mimetype === 'application/pdf') {
-        cb(null, true);
-      } else {
-        cb(new Error('File harus berformat PDF.'));
-      }
-    },
-  }).single('pdf-file');
 
 
 export const getPinjaman = async(req, res) => {
@@ -121,6 +96,11 @@ export const createPinjaman = async (req, res) => {
             sudah_dihitung,
             ...pinjamanData
         } = req.body;
+
+        if(req.body) {
+          pinjamanData.filepath_pernyataan = req.body.filepath_pernyataan;
+        }
+        console.log('req filename: ', pinjamanData.filepath_pernyataan);
 
         const newPinjaman = await Pinjaman.create(req.body, { transaction });
 
@@ -209,33 +189,33 @@ export const createPinjaman = async (req, res) => {
         });
     }
 
-    uploadPernyataan(req, res, async(err) => {
-      if(err){
-        return res.status(400).json({success: false, message: err.message});
-      } 
+    // uploadPernyataan(req, res, async(err) => {
+    //   if(err){
+    //     return res.status(400).json({success: false, message: err.message});
+    //   } 
   
-      const filePath = path.join('uploads/files', req.file.filename);
+    //   const filePath = path.join('./uploads/files', req.file.filename);
   
-      try {
-        const {id_pinjaman} = req.body;
-        console.log("id_pinjamann:", id_pinjaman);
-        if(!id_pinjaman) {
-          return res.status(400).json({success: false, message: 'Id pinjaman tidak ditemukan.'});
-        }
+    //   try {
+    //     const {id_pinjaman} = req.body;
+    //     console.log("id_pinjamann:", id_pinjaman);
+    //     if(!id_pinjaman) {
+    //       return res.status(400).json({success: false, message: 'Id pinjaman tidak ditemukan.'});
+    //     }
   
-        const pinjaman = await Pinjaman.findByPk(id_pinjaman);
-        if(!pinjaman) {
-          return res.status(400).json({success: false, message: 'Data pinjaman tidak ditemukan.'});
-        }
+    //     const pinjaman = await Pinjaman.findByPk(id_pinjaman);
+    //     if(!pinjaman) {
+    //       return res.status(400).json({success: false, message: 'Data pinjaman tidak ditemukan.'});
+    //     }
   
-        pinjaman.filepath_pernyataan = filePath;
-        await pinjaman.save();
+    //     pinjaman.filepath_pernyataan = filePath;
+    //     await pinjaman.save();
   
-        res.json({success: true, message: 'File berhasil disimpan.'});
-      } catch (error) {
-        res.status(500).json({success: false, message: error.message});
-      }
-    });
+    //     res.json({success: true, message: 'File berhasil disimpan.'});
+    //   } catch (error) {
+    //     res.status(500).json({success: false, message: error.message});
+    //   }
+    // });
 };
 
 const sendEmailNotification = async(pinjaman) => {
@@ -257,7 +237,7 @@ const sendEmailNotification = async(pinjaman) => {
       ID Peminjam: ${pinjaman.id_peminjam}\n
       Jumlah: ${formatRupiah(pinjaman.jumlah_pinjaman)}\n
       Keperluan: ${pinjaman.keperluan}\n
-      Tinjau pengajuan pinjaman di http://10.70.10.139:3000\n\n
+      Tinjau pengajuan pinjaman di http://10.70.10.111:3000\n\n
       Regards,\n
       Campina Dev Team.
       `, 

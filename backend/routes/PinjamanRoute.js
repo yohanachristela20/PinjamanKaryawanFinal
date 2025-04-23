@@ -7,7 +7,8 @@ import { createPinjaman,
          filterPiutangTahunan,
          getDataPerDivisi,
          getDataPeminjamPerDivisi,
- } from "../controllers/PinjamanController.js";    
+ } from "../controllers/PinjamanController.js"; 
+
 import Plafond from "../models/PlafondModel.js";
 import Angsuran from "../models/AngsuranModel.js";
 import Karyawan from "../models/KaryawanModel.js";
@@ -23,6 +24,7 @@ import Pinjaman from "../models/PinjamanModel.js";
 import AntreanPengajuan from "../models/AntreanPengajuanModel.js";
 import nodemailer from "nodemailer"; 
 import dotenv from "dotenv";
+import { uploadPernyataan } from "../middlewares/UploadPernyataan.js"; 
 
 dotenv.config();
 
@@ -72,35 +74,26 @@ const upload = multer({ storage: storage });
 //   }).single('pdf-file');
 
 
-// router.post("/upload-pernyataan", async (req, res) => {
-//   uploadPernyataan(req, res, async(err) => {
-//     if(err){
-//       return res.status(400).json({success: false, message: err.message});
-//     } 
+// export const uploadFileHandler = async(req, res) => {
+//   const filePath = path.join('./uploads/files', req.file.filename);
 
-//     const filePath = path.join('uploads/files', req.file.filename);
+//   try {
+//     const { id_pinjaman } = req.body;
+//     console.log('id_pinjaman:', id_pinjaman);
 
-//     try {
-//       const {id_pinjaman} = req.body;
-//       console.log("id_pinjamann:", id_pinjaman);
-//       if(!id_pinjaman) {
-//         return res.status(400).json({success: false, message: 'Id pinjaman tidak ditemukan.'});
-//       }
+//     const pinjaman = await Pinjaman.findByPk(id_pinjaman);
+//     // if (!pinjaman) {
+//     //   return res.status(400).json({ success: false, message: 'Data pinjaman tidak ditemukan.' });
+//     // }
 
-//       const pinjaman = await Pinjaman.findByPk(id_pinjaman);
-//       if(!pinjaman) {
-//         return res.status(400).json({success: false, message: 'Data pinjaman tidak ditemukan.'});
-//       }
+//     pinjaman.filepath_pernyataan = filePath;
+//     await pinjaman.save();
 
-//       pinjaman.filepath_pernyataan = filePath;
-//       await pinjaman.save();
-
-//       res.json({success: true, message: 'File berhasil disimpan.'});
-//     } catch (error) {
-//       res.status(500).json({success: false, message: error.message});
-//     }
-//   });
-// });
+//     res.json({ success: true, message: 'File berhasil disimpan.' });
+//   } catch (error) {
+//     res.status(500).json({success: false, message: error.message});
+//   }
+// }
 
 router.get('/pinjaman', getPinjaman);
 router.get('/pinjaman/:id_pinjaman', getPinjamanById); 
@@ -111,45 +104,47 @@ router.get('/filter-piutang', filterPiutangTahunan);
 router.get('/data-divisi', getDataPerDivisi); 
 router.get('/data-peminjam-per-divisi', getDataPeminjamPerDivisi);
 
+router.put("/upload-pernyataan", uploadPernyataan);
+
 router.get("/total-pinjaman-keseluruhan", async (req, res) => {
-        try {
-          const totalPinjamanKeseluruhan = (await Pinjaman.sum("jumlah_pinjaman", {
-            where: {
-              status_pengajuan: "Diterima",
-              status_transfer: "Selesai",
-            },
-          })) || 0;
-      
-          res.status(200).json({ totalPinjamanKeseluruhan });
-        } catch (error) {
-          console.error("Error fetching total pinjaman:", error.message);
-          res.status(500).json({ message: "Internal server error" });
-        }
-      });
+    try {
+      const totalPinjamanKeseluruhan = (await Pinjaman.sum("jumlah_pinjaman", {
+        where: {
+          status_pengajuan: "Diterima",
+          status_transfer: "Selesai",
+        },
+      })) || 0;
+
+      res.status(200).json({ totalPinjamanKeseluruhan });
+    } catch (error) {
+      console.error("Error fetching total pinjaman:", error.message);
+      res.status(500).json({ message: "Internal server error" });
+    }
+});
 
 router.get("/total-peminjam", async (req, res) => {
-        try {
-            const totalPeminjam = await Pinjaman.count({
-                distinct: true,
-                col: 'id_peminjam',
-                where: {
-                        status_pengajuan: "Diterima",
-                        status_transfer: "Selesai"
-                }
+    try {
+        const totalPeminjam = await Pinjaman.count({
+            distinct: true,
+            col: 'id_peminjam',
+            where: {
+                    status_pengajuan: "Diterima",
+                    status_transfer: "Selesai"
+            }
 
-            }); 
-            
-            if (totalPeminjam === null || totalPeminjam === undefined) {
-                return res.status(404).json({ message: "No peminjam data found" });
-            } 
+        }); 
+        
+        if (totalPeminjam === null || totalPeminjam === undefined) {
+            return res.status(404).json({ message: "No peminjam data found" });
+        } 
 
-            const total_peminjam = totalPeminjam || 0; 
+        const total_peminjam = totalPeminjam || 0; 
 
-            res.status(200).json({ totalPeminjam: total_peminjam});
-        } catch (error) {
-                console.error("Error fetching total peminjam:", error.message);
-                res.status(500).json({ message: "Internal server error" });
-        }
+        res.status(200).json({ totalPeminjam: total_peminjam});
+    } catch (error) {
+            console.error("Error fetching total peminjam:", error.message);
+            res.status(500).json({ message: "Internal server error" });
+    }
 })
       
 router.get("/pinjaman/total-pinjaman/:id_peminjam", async (req, res) => {
@@ -343,6 +338,82 @@ router.get("/plafond-update-saat-ini/:id_pinjaman", async (req, res) => {
       message: "Internal server error",
       error: error.message,
     });
+  }
+});
+
+// router.get("/pdf/:id_pinjaman", async (req, res) => {
+//   try {
+//     const { id_pinjaman } = req.params;
+
+//     const showPdf = await Pinjaman.findOne(
+//       { where: { id_pinjaman: id_pinjaman },
+//       attributes: ["filepath_pernyataan"] }
+//     );
+
+//     console.log('Show pdf: ', showPdf);
+
+//     // if (error || results.length === 0) {
+//     //   return res.status(404).send('PDF not found');
+//     // }
+
+//     if (showPdf) {
+//       const filePath = results[0].filepath_pernyataan;
+//       console.log("Filepath pernyataan:", filePath);
+
+//       const absolutePath = path.join(__dirname, filePath);
+
+//       fs.readFile(absolutePath, (error, data) => {
+//         if (error) {
+//           return res.status(404).send('PDF not found');
+//         }
+
+//         res.setHeader('Content-Type', 'application/pdf');
+//         res.send(data);
+//       });
+//     }
+
+    
+//   } catch (error) {
+//     console.error("PDF error:", error.message);
+//     res.status(500).json({
+//       message: "Internal server error",
+//       error: error.message,
+//     });
+//   }
+// });
+
+// router.get("/pdf/:filename", async (req, res) => {
+//   const fileName = req.params.filename;
+//   const filePath = path.join(process.cwd(), 'uploads', 'files', fileName);
+
+//   if(fs.existsSync(filePath)){
+//     res.sendFile(filePath);
+//   } else{
+//     res.status(404).json({message: 'File tidak ditemukan.'});
+//   }
+// });
+
+router.get("/pdf/:id_pinjaman", async (req, res) => {
+  try {
+    const {id_pinjaman} = req.params;
+
+    const pinjaman = await Pinjaman.findOne({where: { id_pinjaman }});
+
+    if(!pinjaman || !pinjaman.filepath_pernyataan) {
+      return res.status(404).json({message: 'File tidak ditemukan'});
+    }
+
+    const filePath = path.join(process.cwd(), pinjaman.filepath_pernyataan);
+    if(!fs.existsSync(filePath)) {
+      return res.status(404).json({message: 'File tidak ditemukan di server'});
+    }
+
+    console.log("Filepath: ", filePath);
+
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Error preview PDF: ", error);
+    res.status(500).json({message: 'Gagal menampilkan file'});
   }
 });
 
@@ -580,7 +651,7 @@ const sendEmailNotification = async(pinjaman) => {
       ID Peminjam: ${pinjaman.id_peminjam}\n
       Jumlah: ${formatRupiah(pinjaman.jumlah_pinjaman)}\n
       Keperluan: ${pinjaman.keperluan}\n
-      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.139:3000\n\n
+      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.111:3000\n\n
       Regards,\n
       Campina Dev Team.
       `, 

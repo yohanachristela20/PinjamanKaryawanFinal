@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from "react";
-import {FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight, FaRegSave, FaHistory, FaCheckCircle, FaTimesCircle, FaCoins} from 'react-icons/fa'; 
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import {FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight, FaRegSave, FaHistory, FaCheckCircle, FaTimesCircle, FaCoins, FaFileContract} from 'react-icons/fa'; 
 import axios from "axios";
 import { useHistory, useLocation } from "react-router-dom"; 
 import { toast } from 'react-toastify';
@@ -13,12 +13,11 @@ import AcceptedAlert from "components/Alert/AcceptedAlert.js";
 import DeclineAlert from "components/Alert/DeclineAlert.js";
 import PendingAlert from "components/Alert/PendingAlert.js";
 import AcceptedNextStepAlert from "components/Alert/AcceptedNextStepAlert.js";
-
+import ConditionallyAcceptedAlert from "components/Alert/ConditionallyAcceptedAlert.js";
 import ReactLoading from "react-loading";
 import "../assets/scss/lbd/_loading.scss";
 
-
-const BASE_URL = 'http://10.70.10.139:5000';
+const BASE_URL = 'http://10.70.10.111:5000';
 import {
   Card,
   Table,
@@ -56,6 +55,8 @@ function DashboardKaryawan() {
   const [departemen, setDepartemen] = useState(""); 
   const [plafond, setPlafond] = useState(0); 
   const [totalPinjaman, setTotalPinjaman] = useState(0); 
+
+  const [filepath_pernyataan, setFilePathPernyataan] = useState('');
 
   const [plafond_saat_ini, setPlafondBaru] = useState(""); 
   const [tanggal_plafond_tersedia, setTanggalPlafondTersedia] = useState(""); 
@@ -106,6 +107,10 @@ function DashboardKaryawan() {
   const [file, setFile] = useState(null);
   const [jumlah_angsuranbaru, setJumlahAngsuranBaru] = useState("");
 
+  const [hidden, setHidden] = useState(false); 
+
+  const elementRef = useRef(null);
+
   const formatTanggal = (tanggal) => {
     if (!tanggal) return "";
     const parts = tanggal.split("/");
@@ -134,7 +139,7 @@ function DashboardKaryawan() {
         // }
 
         try {
-          const response = await axios.get(`http://10.70.10.139:5000/user-details/${username}`, {
+          const response = await axios.get(`http://10.70.10.111:5000/user-details/${username}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
     
@@ -167,7 +172,7 @@ useEffect(() => {
 
 const getNomorAntrean = async() => {
     try {
-      const antreanResponse = await axios.get(`http://10.70.10.139:5000/antrean/${id_pinjaman}`, {
+      const antreanResponse = await axios.get(`http://10.70.10.111:5000/antrean/${id_pinjaman}`, {
         headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -204,7 +209,7 @@ useEffect(() => {
     try {
       setLoadingPlafond(true);
 
-      const response = await axios.get("http://10.70.10.139:5000/angsuran-berikutnya", {
+      const response = await axios.get("http://10.70.10.111:5000/angsuran-berikutnya", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -302,7 +307,7 @@ useEffect(() => {
   const fetchData = async () => {
     try {
       const responsePlafond = await axios.get(
-        `http://10.70.10.139:5000/plafond-saat-ini?jumlah_pinjaman=${jumlah_pinjaman || 0}`,
+        `http://10.70.10.111:5000/plafond-saat-ini?jumlah_pinjaman=${jumlah_pinjaman || 0}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -335,12 +340,12 @@ useEffect(() => {
           responseTotalDibayar, 
           responseTotalPinjaman,
         ] = await Promise.all([
-            axios.get(`http://10.70.10.139:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
+            axios.get(`http://10.70.10.111:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
                 headers: {
                   Authorization: `Bearer ${token}`,
               },
             }),
-            axios.get(`http://10.70.10.139:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
+            axios.get(`http://10.70.10.111:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
                 headers: {
                   Authorization: `Bearer ${token}`,
               },
@@ -381,7 +386,7 @@ useEffect(() => {
           });
     
           const karyawanData = responseKaryawan.data;
-          const pinjamanResponse = await axios.get(`http://10.70.10.139:5000/pinjaman/total-pinjaman/${karyawanData.id_karyawan}`, {
+          const pinjamanResponse = await axios.get(`http://10.70.10.111:5000/pinjaman/total-pinjaman/${karyawanData.id_karyawan}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -433,7 +438,7 @@ useEffect(() => {
 
   const getPinjaman = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.139:5000/pinjaman", {
+      const response = await axios.get("http://10.70.10.111:5000/pinjaman", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -449,7 +454,7 @@ useEffect(() => {
   
   const getAntrean = async () => {
     try {
-      const response = await axios.get("http://10.70.10.139:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.111:5000/antrean-pengajuan", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -509,7 +514,7 @@ useEffect(() => {
     setFile(event.target.files[0]);
   };
 
-  const handleFileUpload = () => {
+  const handleFileUpload = async() => {
     if (!file) {
       toast.error("Silakan pilih file PDF terlebih dahulu.");
       return;
@@ -518,30 +523,60 @@ useEffect(() => {
       toast.error("File harus berformat PDF.");
       return;
     }
+    
 
     const formData = new FormData();
     formData.append("pdf-file", file);
     formData.append("id_pinjaman", id_pinjaman);
 
-    fetch("http://10.70.10.139:5000/upload-pernyataan", {
-      method: "POST",
+    console.log('Id pinjaman: ', id_pinjaman);
+    console.log('Form data: ', formData);
+
+    fetch("http://10.70.10.111:5000/upload-pernyataan", {
+      method: "PUT",
       body: formData,
       headers: {
         Authorization: `Bearer ${token}`,
-    },
+      },
     })
     .then(async (response) => {
       const data = await response.json();
+      console.log('File path saved: ', data.filePath);
       if (!response.ok) {
         throw new Error(data.message || "Gagal mengunggah.");
       }
+
+      setFilePathPernyataan(data.filePath);
       toast.success("File berhasil diunggah.");
-      setShowImportModal(false);
-      onSuccess();
+      // setShowImportModal(false);
+      setShowAddModal(false);
+      // onSuccess();
     })
     .catch((error) => {
       toast.error(`Gagal: ${error.message}`);
     });
+  
+    // try {
+    //   const response = await fetch("http://10.70.10.111:5000/upload-pernyataan", {
+    //     method: "POST",
+    //     body: formData,
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   });
+
+    //   const data = await response.json();
+    //   if (!response.ok) {
+    //     throw new Error(data.message || "Gagal mengunggah.");
+    //   }
+
+    //   toast.success("File berhasil diunggah.");
+    //   onSuccess();
+
+    //   await savePengajuan();
+    // } catch (error) {
+    //   toast.error(`Gagal: ${error.message}`);
+    // }
   };
 
 
@@ -599,6 +634,7 @@ useEffect(() => {
       setrasio_angsuran(null);
     }
   };
+
   
 
   const stepTitle = [
@@ -672,6 +708,7 @@ useEffect(() => {
   totalDibayar,
   tanggal_pengajuan,
   bulanLagi, 
+  rasio_angsuran
 ]);
 
   const hasilScreening = React.useMemo(() => {
@@ -689,10 +726,13 @@ useEffect(() => {
       // rasio_angsuran > 20 ||
       calculatePensiun(tanggal_lahir, jenis_kelamin) < 6 
 
+      console.log("Rasiooo angsuran: ", rasio_angsuran);
+
       if(isDeclined) return "Decline";
       if(isAjukanDisabled || totalPinjaman - totalDibayar !== 0) return "Pending";
+      if(rasio_angsuran > 20) return "ConditionallyAccepted";
       if(plafondFloat < jumlahPinjamanFloat) return "AcceptedNext";
-
+      
     return "Accepted";
   }, [
     tanggal_masuk,
@@ -723,7 +763,7 @@ useEffect(() => {
     try {
       // console.log("Saving pengajuan with id_pinjaman: ", id_pinjaman);
       setLoadingPlafond(true);
-        await axios.post("http://10.70.10.139:5000/pinjaman", {
+        await axios.post("http://10.70.10.111:5000/pinjaman", {
             id_pinjaman,
             tanggal_pengajuan,
             jumlah_pinjaman,
@@ -738,6 +778,7 @@ useEffect(() => {
             tanggal_plafond_tersedia,
             plafond_saat_ini,
             sudah_dihitung,
+            filepath_pernyataan: filepath_pernyataan,
         }, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -747,6 +788,9 @@ useEffect(() => {
         getNomorAntrean();
         handlePengajuanSuccess();
         setIsButtonClicked(true);
+        // setShowImportModal(true);
+
+        elementRef.current?.scrollIntoView();
 
     } catch (error) {
         console.error("Error saat menyimpan pengajuan:", error.response?.data || error.message);
@@ -794,7 +838,7 @@ useEffect(() => {
 const savePlafond = async (e) => {
   e.preventDefault();
   try {
-      await axios.post('http://10.70.10.139:5000/plafond', {
+      await axios.post('http://10.70.10.111:5000/plafond', {
           id_plafond,
           tanggal_penetapan,
           jumlah_plafond,
@@ -1053,7 +1097,7 @@ const savePlafond = async (e) => {
                     </>
                   ) : (
                     <>
-                    <div className="col-12 col-md-auto my-2">
+                    <div className="col-12 col-md-auto my-2" id="ajukan">
                       <Button
                         className="btn-fill w-100"
                         variant="primary"
@@ -1065,10 +1109,10 @@ const savePlafond = async (e) => {
                       </Button>
                     </div>
                     <div className="col-12 col-md-auto my-2">
-                      <Button variant="primary" className="btn-fill w-100" onClick={savePengajuan}  disabled={ isAjukanDisabled || hasilScreening === "Decline" || jumlah_pinjaman === "" || jumlah_angsuran === ""}>
-                      <FaRegSave style={{ marginRight: '8px' }} />
-                        Simpan
-                      </Button>
+                        <Button variant="primary" className="btn-fill w-100" onClick={savePengajuan}  disabled={ isAjukanDisabled || hasilScreening === "Decline" || jumlah_pinjaman === "" || jumlah_angsuran === "" || hasilScreening === "ConditionallyAccepted" && filepath_pernyataan === ""}>
+                        <FaRegSave style={{ marginRight: '8px' }} />
+                          Simpan
+                        </Button>
                     </div>
                     </>
                   )}
@@ -1117,6 +1161,11 @@ const savePlafond = async (e) => {
                               hidden={jumlah_angsuran === "" || jumlah_pinjaman === "" || keperluan === ""}
                             /> 
                         )
+                          : steps === 2 && plafondFloat < jumlahPinjamanFloat && rasio_angsuran > 20 && hasilScreening === "ConditionallyAccepted" ? (
+                            <ConditionallyAcceptedAlert
+                              hidden={jumlah_angsuran === "" || jumlah_pinjaman === "" || keperluan === ""}
+                            />
+                        ) 
                           : steps === 2 && plafondFloat < jumlahPinjamanFloat  && hasilScreening === "AcceptedNext" ? (
                             <AcceptedNextStepAlert
                               hidden={jumlah_angsuran === "" || jumlah_pinjaman === "" || keperluan === ""}
@@ -1177,7 +1226,7 @@ const savePlafond = async (e) => {
                           </tr>
                           <tr>
                             <td className="text-center">Plafond</td>
-                            <td className="text-center">Sisa plafond mencukupi</td>
+                            <td className="text-center" ref={elementRef}>Sisa plafond mencukupi</td>
                             <td className="text-center">
                               {id_karyawan ? (
                                 loadingPlafond ? (
@@ -1217,31 +1266,24 @@ const savePlafond = async (e) => {
                             <td className="text-center">Angsuran</td>
                             <td className="text-center">Persentase angsuran max 20% dari gaji pokok</td>
                             <td className="text-center">
-                              {"Rasio Angsuran: " + rasio_angsuran} % <br/>
-                              {"Max Angsuran Seharusnya: Rp " + formatRupiah(gajiPokok*20 / 100)} <br/><br/>
+                              {"Rasio Angsuran Saat Ini: " + rasio_angsuran + " %"}  <br/>
 
-                              {"Angsuran Saat Ini: Rp " + formatRupiah(jumlah_angsuran)} <br/>
-                              {"Kekurangan Rasio Angsuran: " + (rasio_angsuran - 20).toFixed(2)} % <br/>
-                              {"Kekurangan Angsuran: Rp " + formatRupiah(jumlah_angsuran - (gajiPokok * 20/100))} <br/><br/>
+                              {rasio_angsuran <= 20? hidden : "Angsuran Saat Ini: Rp " + formatRupiah(jumlah_angsuran)} <br/><br/>
+                              {rasio_angsuran <= 20? hidden : "Max Angsuran Seharusnya: Rp " + formatRupiah(gajiPokok*20 / 100)} <br/>
+
+                              {rasio_angsuran <= 20? hidden : "Kelebihan Rasio Angsuran: " + (rasio_angsuran - 20).toFixed(2) + "%"} <br/>
+                              {rasio_angsuran <= 20? hidden : "Kekurangan Angsuran: Rp " + formatRupiah(jumlah_angsuran - (gajiPokok * 20/100))} <br/><br/>
 
                               <Button
                                 className="btn-fill pull-right warning"
                                 variant="warning"
+                                hidden={rasio_angsuran <= 20}
+                                disabled={hasilScreening === "ConditionallyAccepted" && filepath_pernyataan !== "" || hasilScreening==="Pending"}
                                 onClick={() => {
                                   setShowAddModal(true);
-                                  // setSelectedAngsuran(angsuran); 
                                 }}
-                                // style={{
-                                //   display: 
-                                //   hidePelunasanButton(angsuran, angsuranList)
-                                //   ? 'none' 
-                                //   : 'inline-block',
-                                //   width: 125,
-                                //   fontSize: 14,
-                                // }}
-                                // hidden={role === "Finance"}
                                 >
-                                <FaCoins style={{ marginRight: '8px' }}/>
+                                <FaFileContract style={{ marginRight: '8px' }}/>
                                 Ajukan Permohonan
                               </Button>
                             </td>
@@ -1312,7 +1354,7 @@ const savePlafond = async (e) => {
                       <Card.Header as="h4" className="mt-1"><strong>Top-up Angsuran</strong></Card.Header><hr/>
                       <Card.Body>
                           <Card.Text>
-                              <p>Merupakan kondisi dimana keluarga calon peminjam <strong>SETUJU</strong> untuk<strong> meningkatkan jumlah angsuran per-bulan yang dipotong dari gaji karyawan peminjam</strong> untuk mencapai jumlah pinjaman yang diperlukan.</p>
+                              <p>Merupakan kondisi dimana keluarga calon peminjam <strong>SETUJU</strong> untuk<strong> meningkatkan jumlah angsuran per-bulan yang dipotong dari Gaji Karyawan Peminjam</strong> untuk mencapai jumlah pinjaman yang diperlukan.</p>
                               <p>Silakan mengunggah Surat Pernyataan yang telah ditandatangani oleh:
                               </p>
                               <ol>
@@ -1371,7 +1413,7 @@ const savePlafond = async (e) => {
                           <Col md="12">
                               <Form.Group>
                               {/* <span className="text-danger">*</span> */}
-                                  <label>Jumlah Angsuran (per-bulan) Setelah Top-up</label>
+                                  <label>Jumlah Angsuran (per-bulan)</label>
                                   <Form.Control
                                       type="text"
                                       disabled
@@ -1396,9 +1438,11 @@ const savePlafond = async (e) => {
                       <Row>
                           <Col md="12">
                               <div className="modal-footer d-flex flex-column">
-                                  <Button className="btn-fill w-100 mt-3" variant="primary" onClick={handleFileUpload}>
-                                      Simpan
-                                  </Button>
+                                  <a href="#ajukan">
+                                    <Button className="btn-fill w-100 mt-3" variant="primary" onClick={handleFileUpload}>
+                                        Simpan
+                                    </Button>
+                                  </a>
                               </div>
                           </Col>
                       </Row>

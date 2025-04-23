@@ -5,7 +5,7 @@ import mysql from "mysql2";
 dotenv.config();
 
 // const db = new Sequelize("pinjaman_karyawan_encrypt", "root", "", {
-//     host: "10.70.10.139", 
+//     host: "10.70.10.111", 
 //     dialect: 'mysql',
 //     timezone: "+07:00", //Indonesian timezone
 //     dialectOptions: {

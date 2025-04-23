@@ -6,7 +6,12 @@ import axios from "axios";
 import {FaCheckCircle, FaTimesCircle, FaHistory} from 'react-icons/fa'; 
 import { useHistory } from "react-router-dom";
 
-const BASE_URL = 'http://10.70.10.139:5000';
+import { Document, Page, pdfjs } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
+// import PDFViewer from "./pdfViewer.js";
+
+const BASE_URL = 'http://10.70.10.111:5000';
 
 export const fetchHistoryPinjaman = async (idPeminjam) => {
   return axios.get(`${BASE_URL}/history-pinjaman/${idPeminjam}`, {
@@ -54,8 +59,39 @@ function ScreeningKaryawan({ setHasilScreening }) {
   const [screeningResult, setScreeningResult] = useState(null);
   const [rasio_angsuran] = useState(0);
 
-  
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [numPages, setNumPages] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hidden, setHidden] = useState(false); 
+
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchPdf = async () => {
+      try {
+        const response = await fetch(`http://10.70.10.111:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('File tidak ditemukan atau gagal diambil');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } catch (error) {
+        console.error("Error fetching pdf data:", error);
+      }
+    };
+
+    if (selectedPinjaman?.id_pinjaman) {
+      fetchPdf();
+    }
+  }, [selectedPinjaman?.id_pinjaman]);
+
 
   useEffect(() => {
     const loadScreeningData = () => {
@@ -81,29 +117,29 @@ function ScreeningKaryawan({ setHasilScreening }) {
           responseTotalJumlahPinjaman,
           responsePlafond,
         ] = await Promise.all([
-          axios.get(`http://10.70.10.139:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
+          axios.get(`http://10.70.10.111:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
             headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
-          axios.get(`http://10.70.10.139:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
+          axios.get(`http://10.70.10.111:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
             headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
-          axios.get("http://10.70.10.139:5000/total-pinjaman-keseluruhan", {
+          axios.get("http://10.70.10.111:5000/total-pinjaman-keseluruhan", {
              headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
           await axios.get(
-          `http://10.70.10.139:5000/plafond-update-saat-ini/${selectedPinjaman.id_pinjaman}`,
+          `http://10.70.10.111:5000/plafond-update-saat-ini/${selectedPinjaman.id_pinjaman}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }),
-          // axios.get("http://10.70.10.139:5000/plafond-tersedia", {
+          // axios.get("http://10.70.10.111:5000/plafond-tersedia", {
           //   headers: {
           //     Authorization: `Bearer ${token}`,
           // },
@@ -173,9 +209,32 @@ function ScreeningKaryawan({ setHasilScreening }) {
   //   <p>Hasil Screening: {screeningResult.jumlahPlafondSaatIni >= 0 ? "Diterima" : "Ditolak"}</p>
   // )}
 
+  useEffect(() => {
+    try {
+      const fetchPdf = async() => {
+        fetch(`http://10.70.10.111:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(response => response.blob())
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          setPdfUrl(url);
+        });
+      }
+
+      if (selectedPinjaman?.id_pinjaman) {
+        fetchPdf();
+      } else {
+        loadScreeningData();
+      }
+
+    } catch (error) {
+      console.error("Error fetching pdf data:", error);
+    }
+  }, [selectedPinjaman?.id_pinjaman]);
 
   const updatePinjamanStatus = (status) => {
-    axios.put(`http://10.70.10.139:5000/pinjaman/cancel/${selectedPinjaman.id_pinjaman}`, {
+    axios.put(`http://10.70.10.111:5000/pinjaman/cancel/${selectedPinjaman.id_pinjaman}`, {
       not_compliant: status, 
     }, {
       headers: {
@@ -193,7 +252,7 @@ function ScreeningKaryawan({ setHasilScreening }) {
 
   const getPlafond = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.139:5000/plafond");
+      const response = await axios.get("http://10.70.10.111:5000/plafond");
       setPlafond(response.data);
     } catch (error) {
       console.error("Error fetching data:", error.message); 
@@ -202,7 +261,7 @@ function ScreeningKaryawan({ setHasilScreening }) {
   
   const getPinjaman = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.139:5000/pinjaman");
+      const response = await axios.get("http://10.70.10.111:5000/pinjaman");
       setPinjaman(response.data);
     } catch (error) {
       console.error("Error fetching data:", error.message); 
@@ -318,6 +377,10 @@ function ScreeningKaryawan({ setHasilScreening }) {
     : 0;
 
 console.log("Total belum dibayar:", totalBelumDibayar);
+
+function onDocumentLoadSuccess({ numPages }) {
+  setNumPages(numPages);
+}
 
   return (
     <>
@@ -682,6 +745,29 @@ console.log("Total belum dibayar:", totalBelumDibayar);
                 </Form>
               </Card.Body>
             </Card>
+          </Col>
+        </Row>
+          <Row>
+          <Col className="card-screening" style={{ maxWidth: "100%" }}>
+          <Card className="card-screening p-4">
+            {selectedPinjaman?.jumlah_pinjaman && selectedPinjaman?.Peminjam.gaji_pokok ? (
+              calculaterasio_angsuran(
+                selectedPinjaman.jumlah_pinjaman,
+                selectedPinjaman.Peminjam.gaji_pokok
+              ) > 20 ? (
+                <iframe
+                  src={pdfUrl}
+                  width="100%"
+                  height="700px"
+                  title="PDF Preview"
+                />
+              ) : (
+                hidden
+              )
+            ) : (
+              hidden
+            )}
+          </Card>
           </Col>
         </Row>
       </Container>

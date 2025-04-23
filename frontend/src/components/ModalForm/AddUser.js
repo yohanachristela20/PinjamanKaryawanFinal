@@ -16,7 +16,7 @@ const AddUser = ({showAddModal, setShowAddModal, onSuccess}) => {
         try {
             const defaultPassword = "Campina123!"; 
 
-            const response = await axios.get('http://10.70.10.139:5000/last-id', {
+            const response = await axios.get('http://10.70.10.111:5000/last-id', {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -29,7 +29,7 @@ const AddUser = ({showAddModal, setShowAddModal, onSuccess}) => {
                 newId = `USC${incrementedIdNumber}`;
             }
 
-            await axios.post('http://10.70.10.139:5000/user', {
+            await axios.post('http://10.70.10.111:5000/user', {
                 id_user: newId,
                 username, 
                 password: defaultPassword,

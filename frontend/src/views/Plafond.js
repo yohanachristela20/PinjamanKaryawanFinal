@@ -90,7 +90,7 @@ function Plafond() {
   const getPlafond = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.139:5000/plafond", {
+      const response = await axios.get("http://10.70.10.111:5000/plafond", {
         headers: {
           Authorization: `Bearer ${token}`,
       },

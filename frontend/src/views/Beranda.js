@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {FaCheckSquare, FaFileCsv, FaFileImport, FaFilePdf, FaUserCheck, FaSortDown, FaSortUp} from 'react-icons/fa'; 
+import {FaCheckSquare, FaFileCsv, FaFileImport, FaFilePdf, FaUserCheck, FaSortDown, FaSortUp, FaFileContract} from 'react-icons/fa'; 
 import SearchBar from "components/Search/SearchBar.js";
 import ChartComponent from "components/Chart/BarChart.js";
 import LineComponent from "components/Chart/LineChart";
@@ -36,7 +36,9 @@ import {
   Container,
   Row,
   Col,
-  Spinner
+  Spinner, 
+  Modal, 
+  Form
 } from "react-bootstrap";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -78,6 +80,10 @@ function Beranda() {
   const [sortOrderDibayar, setSortOrderDibayar] = useState("asc");
 
   const [date, setDate] = useState(new Date());
+
+  const [filepath_pernyataan, setFilePathPernyataan] = useState('');
+  const [showAddModal, setShowAddModal] = React.useState(false);
+  const [file, setFile] = useState(null);
 
   const findNomorAntrean = (idPinjaman) => {
     const antreanItem = antrean.find(item => item.id_pinjaman === idPinjaman);
@@ -191,7 +197,7 @@ function Beranda() {
   const getPinjaman = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.111:5000/pinjaman", {
+      const response = await axios.get("http://10.70.10.117:5000/pinjaman", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -210,7 +216,7 @@ function Beranda() {
   const getPinjamanData = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.111:5000/pinjaman-data", {
+      const response = await axios.get("http://10.70.10.117:5000/pinjaman-data", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -230,7 +236,7 @@ function Beranda() {
   const getAntrean = async () => {
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.111:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.117:5000/antrean-pengajuan", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -247,7 +253,7 @@ function Beranda() {
 
   const fetchAntrean = async () => {
     try {
-      const response = await axios.get("http://10.70.10.111:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.117:5000/antrean-pengajuan", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -279,7 +285,7 @@ function Beranda() {
   useEffect(() => {
     const fetchYears = async () => {
       try {
-        const response = await axios.get("http://10.70.10.111:5000/filter-piutang", {
+        const response = await axios.get("http://10.70.10.117:5000/filter-piutang", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -304,7 +310,7 @@ function Beranda() {
   
       try {
         const response = await axios.get(
-          `http://10.70.10.111:5000/user-details/${username}`,
+          `http://10.70.10.117:5000/user-details/${username}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -326,16 +332,16 @@ function Beranda() {
     const fetchSummaryData = async () => {
           try {
             const [responseTotalPinjaman, responseTotalPeminjam, responseTotalDibayar, responsePlafond] = await Promise.all([
-              axios.get("http://10.70.10.111:5000/total-pinjaman-keseluruhan", {
+              axios.get("http://10.70.10.117:5000/total-pinjaman-keseluruhan", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
-              axios.get("http://10.70.10.111:5000/total-peminjam", {
+              axios.get("http://10.70.10.117:5000/total-peminjam", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
-              axios.get("http://10.70.10.111:5000/total-dibayar", {
+              axios.get("http://10.70.10.117:5000/total-dibayar", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
-              axios.get("http://10.70.10.111:5000/latest-plafond-saat-ini", {
+              axios.get("http://10.70.10.117:5000/latest-plafond-saat-ini", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
             ]);
@@ -471,7 +477,7 @@ function Beranda() {
 
       // console.log("Payload yang dikirim ke server:", payload);
 
-      const response = await axios.put(`http://10.70.10.111:5000/pengajuan/${pinjaman.id_pinjaman}`, {
+      const response = await axios.put(`http://10.70.10.117:5000/pengajuan/${pinjaman.id_pinjaman}`, {
         status_pengajuan: "Diterima",
 
       }, {
@@ -516,7 +522,7 @@ function Beranda() {
 
 
   const downloadCSV = (data) => {
-    const header = ["id_pinjaman", "tanggal_pengajuan", "nomor_antrean", "jumlah_pinjaman", "jumlah_angsuran", "pinjaman_setelah_pembulatan", "rasio_angsuran", "keperluan", "status_pengajuan", "status_transfer", "id_peminjam", "id_asesor"];
+    const header = ["id_pinjaman", "tanggal_pengajuan", "nomor_antrean", "jumlah_pinjaman", "jumlah_angsuran", "pinjaman_setelah_pembulatan", "rasio_angsuran", "keperluan", "status_pengajuan", "status_transfer", "id_peminjam", "filepath_pernyataan"];
     
     const filteredData = data.filter(
       (item) =>
@@ -543,7 +549,8 @@ function Beranda() {
         item.status_pengajuan,
         item.status_transfer,
         item.id_peminjam,
-        item.id_asesor
+        // item.id_asesor,
+        item.filepath_pernyataan
       ];
     });
 
@@ -596,8 +603,9 @@ function Beranda() {
       "Jumlah Pinjaman Setelah Pembulatan", 
       "Rasio Angsuran",
       "Keperluan", 
+      "Tanggal Plafond Tersedia",
       "Status Pengajuan", 
-      "Status Transfer"
+      "Status Transfer", 
     ];  
     const rows = Array.from(document.querySelectorAll("tbody tr")).map((tr) => {
       return Array.from(tr.querySelectorAll("td")).map((td) => td.innerText.trim());
@@ -635,7 +643,7 @@ function Beranda() {
 
   const dataPinjaman = async (selectedYear) => {
     try {
-      const response = await axios.get("http://10.70.10.111:5000/data-pinjaman", {
+      const response = await axios.get("http://10.70.10.117:5000/data-pinjaman", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -679,7 +687,7 @@ const dataPerDivisi = async (selectedDepartemen, selectedMonth = "", selectedYea
 
         // console.log("Params:", { departemen: selectedDepartemen, bulan, tahun });
 
-        const response = await axios.get("http://10.70.10.111:5000/data-divisi", {
+        const response = await axios.get("http://10.70.10.117:5000/data-divisi", {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -727,7 +735,7 @@ const dataPeminjamPerDivisi = async (selectedDepartemenPeminjam, selectedMonthPe
       const tahun = selectedYear || new Date().getFullYear();
       const bulan = selectedMonthPeminjam === "" ? undefined : selectedMonthPeminjam.padStart(2, '0');
 
-      const response = await axios.get("http://10.70.10.111:5000/data-peminjam-per-divisi", {
+      const response = await axios.get("http://10.70.10.117:5000/data-peminjam-per-divisi", {
           headers: {
               Authorization: `Bearer ${token}`,
           },
@@ -765,6 +773,92 @@ const dataPeminjamPerDivisi = async (selectedDepartemenPeminjam, selectedMonthPe
       });
   }
 };
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleFileUpload = async() => {
+    if (!file) {
+      toast.error("Silakan pilih file PDF terlebih dahulu.");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("File harus berformat PDF.");
+      return;
+    }
+    
+
+    const formData = new FormData();
+    formData.append("pdf-file", file);
+    formData.append("id_pinjaman", pinjaman.id_pinjaman);
+
+    console.log('Id pinjaman: ', pinjaman.id_pinjaman);
+    console.log('Form data: ', formData);
+
+    fetch("http://10.70.10.117:5000/upload-pernyataan", {
+      method: "PUT",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then(async (response) => {
+      const data = await response.json();
+      console.log('File path saved: ', data.filePath);
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal mengunggah.");
+      }
+
+      setFilePathPernyataan(data.filePath);
+      toast.success("File berhasil diunggah.");
+      // setShowImportModal(false);
+      setShowAddModal(false);
+      // handleFilepath();
+      // onSuccess();
+    })
+    .catch((error) => {
+      toast.error(`Gagal: ${error.message}`);
+    });
+
+  };
+
+  const handleFilepath = async(id_pinjaman) => {
+    // if (!pinjaman || !pinjaman.id_pinjaman) {
+    //   console.error('Pinjaman atau id_pinjaman tidak ditemukan.');
+    //   toast.error('Data pinjaman belum tersedia.');
+    //   return;
+    // }
+    
+    handleFileUpload();
+    try {
+  
+      console.log('Id pinjaman: ', pinjaman.id_pinjaman);
+      console.log('Filepath: ', pinjaman.filepath_pernyataan);
+      
+      await axios.patch(`http://10.70.10.117:5000/unggah-permohonan/${pinjaman.id_pinjaman}`, {
+        
+        filepath_pernyataan
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+      },
+      });
+      toast.success('Filepath berhasil diperbarui!', {
+        position: "top-right", 
+        autoClose: 5000,
+        hideProgressBar: true,
+      });
+      
+    } catch (error) {
+      console.error('Gagal mengupdate filepath:', error.response ? error.response.data : error.message);
+      toast.error('Gagal memperbarui filepath.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+      });
+    }
+  }
 
   return (
     <>
@@ -1083,6 +1177,16 @@ const dataPeminjamPerDivisi = async (selectedDepartemenPeminjam, selectedMonthPe
                               )}
                             </td>
                             <td className="text-center">
+                            {/* <Button
+                              className="btn-fill pull-right mb-2"
+                              type="button"
+                              variant="warning"
+                              onClick={() => setShowAddModal(true)}
+                              style={{width: 125, fontSize:14}}>
+                              <FaFileContract style={{ marginRight: '8px' }}/>
+                              Unggah Permohonan
+                            </Button> */}
+
                             <Button
                               className="btn-fill pull-right mb-2"
                               type="button"
@@ -1141,6 +1245,59 @@ const dataPeminjamPerDivisi = async (selectedDepartemenPeminjam, selectedMonthPe
             </div>
           </>
         )}
+
+          <Modal
+                className="modal-primary"
+                show={showAddModal}
+                onHide={() => setShowAddModal(false)}
+            >
+                <Modal.Header className="text-center pb-1">
+                    <h3 className="mt-3 mb-0">Form Permohonan Top-up Angsuran</h3>
+                </Modal.Header>
+                <Modal.Body className="text-left pt-0">
+                    <hr />
+                    <Form onSubmit={handleFilepath}>
+                    <Card> 
+                        <Card.Header as="h4" className="mt-1"><strong>Top-up Angsuran</strong></Card.Header><hr/>
+                        <Card.Body>
+                            <Card.Text>
+                                <p>Merupakan kondisi dimana keluarga calon peminjam <strong>SETUJU</strong> untuk<strong> meningkatkan jumlah angsuran per-bulan yang dipotong dari Gaji Karyawan Peminjam</strong> untuk mencapai jumlah pinjaman yang diperlukan.</p>
+                                <p>Silakan mengunggah Surat Pernyataan yang telah ditandatangani oleh:
+                                </p>
+                                <ol>
+                                    <li>Karyawan Peminjam</li>
+                                    <li>Perwakilan Keluarga Karyawan (suami/istri)</li>
+                                    <li>Manager/Supervisor/Kabag</li>
+                                    <li>Direktur Keuangan</li>
+                                    <li>Presiden Direktur</li>
+                                  </ol>
+                            </Card.Text>
+                        </Card.Body>
+                    </Card>
+                    <span className="text-danger required-select">(*) Wajib diisi.</span>
+                        <Row>
+                            <Col md="12">
+                                <Form.Group>
+                                <span className="text-danger">*</span>
+                                    <label>Unggah Surat Pernyataan</label>
+                                    <input type="file" accept=".pdf" onChange={handleFileChange} />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md="12">
+                                <div className="modal-footer d-flex flex-column">
+                                    <a href="#ajukan">
+                                      <Button className="btn-fill w-100 mt-3" variant="primary" onClick={() => handleFilepath(pinjaman.id_pinjaman)}>
+                                          Simpan
+                                      </Button>
+                                    </a>
+                                </div>
+                            </Col>
+                        </Row>
+                    </Form>
+                </Modal.Body>
+          </Modal>
     </>
   );
 

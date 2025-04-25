@@ -36,7 +36,7 @@ function ConditionallyAcceptedAlert({ selectedPinjaman, hidden }) {
                     {/* <hr className="border" /> */}
                     <p className="mt-2 mb-0">Hasil screening data diri anda tidak memenuhi syarat persentase angsuran maksimal.</p>
                     <p className="mt-0">Namun, anda tetap dapat mengajukan pinjaman dengan mengirimkan surat permohonan terlebih dahulu.</p>
-                    <p className="mt-0">Klik tombol <strong>Ajukan Permohonan</strong>.</p>
+                    <p className="mt-0">Klik tombol <a href="#permohonan" style={{fontWeight: "500", color: "red"}}><strong>Ajukan Permohonan</strong></a>.</p>
                     <Button
                         variant="link"
                         onClick={() => setShow(false)}

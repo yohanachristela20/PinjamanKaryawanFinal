@@ -19,7 +19,7 @@ import {
     Spinner
   } from "react-bootstrap";
 
-function AcceptedNextStepAlert({ selectedPinjaman, hidden }) {
+function ConditionallyAccepted({ selectedPinjaman, hidden }) {
     const [show, setShow] = useState(true);
 
     if (!show) return null;
@@ -32,11 +32,10 @@ function AcceptedNextStepAlert({ selectedPinjaman, hidden }) {
                     <FaInfoCircle className="info-icon"/>
                 </Col>
                 <Col md="11">
-                    <Alert.Heading className="mt-2 mb-0" style={{fontWeight: "500"}}><strong>Pengajuan Diterima Dengan Antrean</strong></Alert.Heading>
+                    <Alert.Heading className="mt-2 mb-0" style={{fontWeight: "500"}}><strong>Pengajuan Diterima Dengan Syarat</strong></Alert.Heading>
                     {/* <hr className="border" /> */}
-                    <p className="mt-2 mb-0">Hasil screening data diri anda telah memenuhi syarat.</p>
-                    <p className="mt-0">Namun karena terbatasnya jumlah plafond, pengajuan pinjaman anda harus masuk ke antrean terlebih dahulu.</p>
-                    <p className="mt-0"><strong>Klik tombol <a href="#simpan" style={{fontWeight: "700", color: "red"}}>Simpan</a> untuk mengajukan pinjaman.</strong></p>
+                    <p className="mt-2 mb-0">Hasil screening data diri karyawan tidak memenuhi syarat maksimal persentase angsuran.</p>
+                    <p className="mt-0">Namun, karyawan tetap dapat mengajukan pinjaman dengan mengirimkan surat permohonan terlampir.</p>
                     <Button
                         variant="link"
                         onClick={() => setShow(false)}
@@ -51,4 +50,4 @@ function AcceptedNextStepAlert({ selectedPinjaman, hidden }) {
     );
 }
 
-export default AcceptedNextStepAlert;
+export default ConditionallyAccepted;

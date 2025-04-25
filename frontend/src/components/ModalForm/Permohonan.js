@@ -13,7 +13,7 @@ const Permohonan = ({ showAddModal, setShowAddModal, onSuccess }) => {
     useEffect(() => {
         const fetchNextId = async () => {
             try {
-                const response = await axios.get('http://10.70.10.111:5000/plafond/getNextPlafondId', {
+                const response = await axios.get('http://10.70.10.117:5000/plafond/getNextPlafondId', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -35,7 +35,7 @@ const Permohonan = ({ showAddModal, setShowAddModal, onSuccess }) => {
     const savePlafond = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://10.70.10.111:5000/plafond', {
+            await axios.post('http://10.70.10.117:5000/plafond', {
                 id_plafond,
                 tanggal_penetapan,
                 jumlah_plafond,

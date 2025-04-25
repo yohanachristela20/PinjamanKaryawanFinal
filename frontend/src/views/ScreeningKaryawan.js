@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AcceptedAlert from "components/Alert/AcceptedAlert.js";
 import DeclineAlert from "components/Alert/DeclineAlert.js";
+import ConditionallyAccepted from "components/Alert/ConditionallyAccepted";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 import {FaCheckCircle, FaTimesCircle, FaHistory} from 'react-icons/fa'; 
@@ -11,7 +12,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 // import PDFViewer from "./pdfViewer.js";
 
-const BASE_URL = 'http://10.70.10.111:5000';
+const BASE_URL = 'http://10.70.10.117:5000';
 
 export const fetchHistoryPinjaman = async (idPeminjam) => {
   return axios.get(`${BASE_URL}/history-pinjaman/${idPeminjam}`, {
@@ -64,12 +65,14 @@ function ScreeningKaryawan({ setHasilScreening }) {
   const [pageNumber, setPageNumber] = useState(1);
   const [hidden, setHidden] = useState(false); 
 
+  const [filepath_pernyataan, setFilePathPernyataan] = useState('');
+
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchPdf = async () => {
       try {
-        const response = await fetch(`http://10.70.10.111:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
+        const response = await fetch(`http://10.70.10.117:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -117,29 +120,29 @@ function ScreeningKaryawan({ setHasilScreening }) {
           responseTotalJumlahPinjaman,
           responsePlafond,
         ] = await Promise.all([
-          axios.get(`http://10.70.10.111:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
+          axios.get(`http://10.70.10.117:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
             headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
-          axios.get(`http://10.70.10.111:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
+          axios.get(`http://10.70.10.117:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
             headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
-          axios.get("http://10.70.10.111:5000/total-pinjaman-keseluruhan", {
+          axios.get("http://10.70.10.117:5000/total-pinjaman-keseluruhan", {
              headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
           await axios.get(
-          `http://10.70.10.111:5000/plafond-update-saat-ini/${selectedPinjaman.id_pinjaman}`,
+          `http://10.70.10.117:5000/plafond-update-saat-ini/${selectedPinjaman.id_pinjaman}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }),
-          // axios.get("http://10.70.10.111:5000/plafond-tersedia", {
+          // axios.get("http://10.70.10.117:5000/plafond-tersedia", {
           //   headers: {
           //     Authorization: `Bearer ${token}`,
           // },
@@ -212,7 +215,7 @@ function ScreeningKaryawan({ setHasilScreening }) {
   useEffect(() => {
     try {
       const fetchPdf = async() => {
-        fetch(`http://10.70.10.111:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
+        fetch(`http://10.70.10.117:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => response.blob())
@@ -234,7 +237,7 @@ function ScreeningKaryawan({ setHasilScreening }) {
   }, [selectedPinjaman?.id_pinjaman]);
 
   const updatePinjamanStatus = (status) => {
-    axios.put(`http://10.70.10.111:5000/pinjaman/cancel/${selectedPinjaman.id_pinjaman}`, {
+    axios.put(`http://10.70.10.117:5000/pinjaman/cancel/${selectedPinjaman.id_pinjaman}`, {
       not_compliant: status, 
     }, {
       headers: {
@@ -252,7 +255,7 @@ function ScreeningKaryawan({ setHasilScreening }) {
 
   const getPlafond = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.111:5000/plafond");
+      const response = await axios.get("http://10.70.10.117:5000/plafond");
       setPlafond(response.data);
     } catch (error) {
       console.error("Error fetching data:", error.message); 
@@ -261,7 +264,7 @@ function ScreeningKaryawan({ setHasilScreening }) {
   
   const getPinjaman = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.111:5000/pinjaman");
+      const response = await axios.get("http://10.70.10.117:5000/pinjaman");
       setPinjaman(response.data);
     } catch (error) {
       console.error("Error fetching data:", error.message); 
@@ -442,7 +445,7 @@ function onDocumentLoadSuccess({ numPages }) {
                     </Form.Group>
                     </Col>
                   </Row>
-                  <Row>
+                  {/* <Row>
                     <Col className="pr-md--0" md="6">
                       <Form.Group>
                         <label>Masa Kerja</label>
@@ -465,7 +468,7 @@ function onDocumentLoadSuccess({ numPages }) {
                           ></Form.Control>
                       </Form.Group>
                     </Col>
-                  </Row>
+                  </Row> */}
                   <Row>
                     <Col md="12">
                       <Form.Group>
@@ -592,12 +595,12 @@ function onDocumentLoadSuccess({ numPages }) {
                             (selectedPinjaman?.Peminjam.tanggal_masuk &&
                               calculateYears(selectedPinjaman.Peminjam.tanggal_masuk) < 5) ||
                             (totalPinjaman - totalSudahDibayar !== 0) ||
-                            (selectedPinjaman?.jumlah_pinjaman &&
-                              selectedPinjaman?.Peminjam.gaji_pokok &&
-                              calculaterasio_angsuran(
-                                selectedPinjaman.jumlah_pinjaman,
-                                selectedPinjaman.Peminjam.gaji_pokok
-                              ) > 20) || rasio_angsuran > 20 ||
+                            // (selectedPinjaman?.jumlah_pinjaman &&
+                            //   selectedPinjaman?.Peminjam.gaji_pokok &&
+                            //   calculaterasio_angsuran(
+                            //     selectedPinjaman.jumlah_pinjaman,
+                            //     selectedPinjaman.Peminjam.gaji_pokok
+                            //   ) > 20) || rasio_angsuran > 20 || 
                             (selectedPinjaman?.Peminjam.tanggal_lahir &&
                               selectedPinjaman?.Peminjam.jenis_kelamin &&
                               calculatePensiun(
@@ -606,6 +609,7 @@ function onDocumentLoadSuccess({ numPages }) {
                               ) < 6) ||
                               jumlahPlafondSaatIniParsed < 0;
                            // Simpan hasil ke dalam variabel hasilScreening
+
                            const hasilScreening = isDeclined ? (
                             <> 
                             {/* {plafondTersediaParsed < jumlahPinjamanParsed ? (
@@ -616,9 +620,19 @@ function onDocumentLoadSuccess({ numPages }) {
                               {/* {console.log('Hasil screening: Decline')} */}
                               {updatePinjamanStatus(1)} 
                             </>
+                          ) : (selectedPinjaman?.jumlah_pinjaman &&
+                            selectedPinjaman?.Peminjam.gaji_pokok &&
+                            calculaterasio_angsuran(
+                              selectedPinjaman.jumlah_pinjaman,
+                              selectedPinjaman.Peminjam.gaji_pokok
+                            ) > 20) || rasio_angsuran > 20 && selectedPinjaman.filepath_pernyataan !== "" ? (
+                            <>
+                              <ConditionallyAccepted/>
+                              {updatePinjamanStatus(0)} 
+                            </>
                           ) : (
                             <>
-                              <AcceptedAlert selectedPinjaman={selectedPinjaman} totalPinjaman={totalPinjaman} totalSudahDibayar={totalSudahDibayar} />
+                              <AcceptedAlert selectedPinjaman={selectedPinjaman} totalPinjaman={totalPinjaman} totalSudahDibayar={totalSudahDibayar}  />
                               {/* {console.log('Hasil screening: Accepted')} */}
                               {updatePinjamanStatus(0)} 
                             </>
@@ -635,18 +649,22 @@ function onDocumentLoadSuccess({ numPages }) {
                   </Row>
                   
                   <Row>
-                    <Col md="9">
+                    <Col md="12">
                     <label>Syarat Pinjaman Karyawan</label>
                       <Table className="table-hover table-striped table-bordered">
                         <thead className="table-primary text-nowwrap">
                           <tr>
                             <th style={{fontSize: 16}}>Syarat Pinjaman</th>
+                            <th style={{fontSize: 16}}>Deskripsi</th>
+                            <th style={{fontSize: 16}}>Kondisi saat ini</th>
                             <th style={{fontSize: 16}}>Status</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr>
-                            <td className="text-left">Masa kerja >= 5 tahun</td>
+                            <td className="text-center">Masa kerja</td>
+                            <td className="text-center">Masa kerja >= 5 tahun</td>
+                            <td className="text-center">{calculateYearsAndMonth(selectedPinjaman.Peminjam.tanggal_masuk)}</td>
                             <td className="text-center">
                               {
                                 selectedPinjaman?.Peminjam.tanggal_masuk
@@ -658,7 +676,14 @@ function onDocumentLoadSuccess({ numPages }) {
                             </td>
                           </tr>
                           <tr>
-                            <td className="text-left">Tidak memiliki pinjaman aktif</td>
+                            <td className="text-center">Riwayat Pinjaman</td>
+                            <td className="text-center">Tidak memiliki pinjaman aktif</td>
+                            <td className="text-center">
+                              { totalPinjaman - totalSudahDibayar > 0 
+                              ? "Memiliki pinjaman aktif"
+                              : "Tidak memiliki pinjaman aktif"
+                              }
+                            </td>
                             <td className="text-center">
                             {totalPinjaman - totalSudahDibayar !== 0 
                               ? <FaTimesCircle style={{ color: 'red' }} /> 
@@ -681,7 +706,11 @@ function onDocumentLoadSuccess({ numPages }) {
                           </tr> */}
 
                           <tr>
-                            <td className="text-left">Masih ada plafond tersisa</td>
+                            <td className="text-center">Plafond</td>
+                            <td className="text-center">Sisa plafond mencukupi</td>
+                            <td className="text-center">
+                              {"Rp " + formatRupiah(parseFloat(jumlahPlafondSaatIni))}
+                            </td>
                             <td className="text-center">
                               {jumlahPlafondSaatIni !== null && jumlahPlafondSaatIni !== undefined && selectedPinjaman?.jumlah_pinjaman !== undefined ? (
                                 parseFloat(jumlahPlafondSaatIni) >= 0 ? (
@@ -696,13 +725,24 @@ function onDocumentLoadSuccess({ numPages }) {
                           </tr>
 
                           <tr>
-                            <td className="text-left">Angsuran maksimal 20% Gaji Pokok</td>
+                            <td className="text-center">Angsuran</td>
+                            <td className="text-center">Persentase angsuran max 20% dari gaji pokok</td>
+                            <td className="text-center">
+                              {"Rasio Angsuran Saat Ini: " + selectedPinjaman?.rasio_angsuran + " %"}  <br/>
+
+                              {selectedPinjaman?.rasio_angsuran <= 20? hidden : "Angsuran Saat Ini: Rp " + formatRupiah(selectedPinjaman?.jumlah_angsuran)} <br/><br/>
+                              {selectedPinjaman?.rasio_angsuran <= 20? hidden : "Max Angsuran Seharusnya: Rp " + formatRupiah(selectedPinjaman?.Peminjam.gaji_pokok*20 / 100)} <br/>
+
+                              {selectedPinjaman?.rasio_angsuran <= 20? hidden : "Kelebihan Rasio Angsuran: " + (selectedPinjaman?.rasio_angsuran - 20).toFixed(2) + "%"} <br/>
+                              {selectedPinjaman?.rasio_angsuran <= 20? hidden : "Kekurangan Angsuran: Rp " + formatRupiah(selectedPinjaman?.jumlah_angsuran - (selectedPinjaman?.Peminjam.gaji_pokok * 20/100))} <br/><br/>
+
+                            </td>
                             <td className="text-center">
                             {selectedPinjaman?.jumlah_pinjaman && selectedPinjaman?.Peminjam.gaji_pokok ? (
                               calculaterasio_angsuran(
                                 selectedPinjaman.jumlah_pinjaman,
                                 selectedPinjaman.Peminjam.gaji_pokok
-                              ) <= 20 ? (
+                              ) <= 20 || selectedPinjaman.filepath_pernyataan !== "" ? (
                                 <FaCheckCircle style={{ color: "green" }} />
                               ) : (
                                 <FaTimesCircle style={{ color: "red" }} />
@@ -713,7 +753,11 @@ function onDocumentLoadSuccess({ numPages }) {
                             </td>
                           </tr>
                           <tr>
-                            <td className="text-left">Jarak pensiun >= 6 tahun</td>
+                            <td className="text-center">Jarak Pensiun</td>
+                            <td className="text-center">Jarak pensiun >= 6 tahun</td>
+                            <td className="text-center">
+                            {selectedPinjaman?.Peminjam.tanggal_lahir && selectedPinjaman?.Peminjam.jenis_kelamin ? calculatePensiun(selectedPinjaman.Peminjam.tanggal_lahir, selectedPinjaman.Peminjam.jenis_kelamin) + " Tahun": ''}
+                            </td>
                             <td className="text-center">
                               {
                               selectedPinjaman?.Peminjam.tanggal_lahir && selectedPinjaman?.Peminjam.jenis_kelamin
@@ -728,7 +772,7 @@ function onDocumentLoadSuccess({ numPages }) {
                       </Table>
                     </Col>
 
-                    <Col md="3">
+                    {/* <Col md="3">
                       <Button
                         className="btn-fill pull-right mb-5 btn-reset"
                         type="submit"
@@ -736,7 +780,7 @@ function onDocumentLoadSuccess({ numPages }) {
                         <FaHistory style={{ marginRight: '8px' }} />
                         Reset
                       </Button>
-                    </Col>
+                    </Col> */}
 
                     
                   </Row>

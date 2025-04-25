@@ -112,7 +112,7 @@ function RiwayatPengajuanKaryawan() {
     try {
       if (!token || !username) return;
 
-      const response = await axios.get(`http://10.70.10.111:5000/user-details/${username}`, {
+      const response = await axios.get(`http://10.70.10.117:5000/user-details/${username}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -132,7 +132,7 @@ function RiwayatPengajuanKaryawan() {
 
   const fetchAntrean = async () => {
     try {
-      const response = await axios.get("http://10.70.10.111:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.117:5000/antrean-pengajuan", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -147,22 +147,22 @@ function RiwayatPengajuanKaryawan() {
   useEffect(()=> {
     try {
       Promise.all([
-        axios.get("http://10.70.10.111:5000/total-pinjaman-keseluruhan", {
+        axios.get("http://10.70.10.117:5000/total-pinjaman-keseluruhan", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
         }),
-        axios.get("http://10.70.10.111:5000/total-peminjam", {
+        axios.get("http://10.70.10.117:5000/total-peminjam", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
         }),
-        axios.get("http://10.70.10.111:5000/total-dibayar", {
+        axios.get("http://10.70.10.117:5000/total-dibayar", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
         }), 
-        axios.get("http://10.70.10.111:5000/plafond-tersedia", {
+        axios.get("http://10.70.10.117:5000/plafond-tersedia", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -221,7 +221,7 @@ function RiwayatPengajuanKaryawan() {
 
   const getPinjaman = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.111:5000/pinjaman", {
+      const response = await axios.get("http://10.70.10.117:5000/pinjaman", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -242,7 +242,7 @@ function RiwayatPengajuanKaryawan() {
 
   const getPinjamanData = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.111:5000/pinjaman-data", {
+      const response = await axios.get("http://10.70.10.117:5000/pinjaman-data", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -258,7 +258,7 @@ function RiwayatPengajuanKaryawan() {
   
   const getAntrean = async () => {
     try {
-      const response = await axios.get("http://10.70.10.111:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.117:5000/antrean-pengajuan", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -305,7 +305,7 @@ const findNomorAntrean = (id_pinjaman) => {
     try {
       // console.log('Mencoba mengupdate status pengajuan:', pinjaman);
   
-      const response = await axios.put(`http://10.70.10.111:5000/batal-pengajuan/${pinjaman.id_pinjaman}`, {
+      const response = await axios.put(`http://10.70.10.117:5000/batal-pengajuan/${pinjaman.id_pinjaman}`, {
         status_pengajuan: "Dibatalkan",
         status_transfer: "Dibatalkan",
       }, {

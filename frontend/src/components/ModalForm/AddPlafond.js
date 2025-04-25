@@ -13,7 +13,7 @@ const AddPlafond = ({ showAddModal, setShowAddModal, onSuccess }) => {
     useEffect(() => {
         const fetchNextId = async () => {
             try {
-                const response = await axios.get('http://10.70.10.111:5000/plafond/getNextPlafondId', {
+                const response = await axios.get('http://10.70.10.117:5000/plafond/getNextPlafondId', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -35,7 +35,7 @@ const AddPlafond = ({ showAddModal, setShowAddModal, onSuccess }) => {
     const savePlafond = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://10.70.10.111:5000/plafond', {
+            await axios.post('http://10.70.10.117:5000/plafond', {
                 id_plafond,
                 tanggal_penetapan,
                 jumlah_plafond,
@@ -49,12 +49,12 @@ const AddPlafond = ({ showAddModal, setShowAddModal, onSuccess }) => {
             onSuccess(); 
             
         } catch (error) {
-            // console.log(error.message);
-            toast.error('Gagal menyimpan data plafond baru.', {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: true,
-              });
+            console.log(error.message);
+            // toast.error('Gagal menyimpan data plafond baru.', {
+            //     position: "top-right",
+            //     autoClose: 5000,
+            //     hideProgressBar: true,
+            //   });
         }
     };
 

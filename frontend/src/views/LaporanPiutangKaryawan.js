@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {FaFileCsv, FaFilePdf, FaFileImport, FaLandmark, FaCoins, FaMoneyBillWave, FaHandHoldingUsd, FaUserFriends, } from 'react-icons/fa'; 
+import {FaFileCsv, FaFilePdf, FaFileImport, FaLandmark, FaCoins, FaMoneyBillWave, FaHandHoldingUsd, FaUserFriends, FaUserCheck, FaFileContract } from 'react-icons/fa'; 
 import SearchBar from "components/Search/SearchBar.js";
 import axios from "axios";
 import { useHistory } from "react-router-dom"; 
@@ -21,7 +21,9 @@ import {
   Row,
   Col,
   Table, 
-  Spinner
+  Spinner, 
+  Modal, 
+  Form
 } from "react-bootstrap";
 
  function LaporanPiutang() {
@@ -42,6 +44,10 @@ import {
   const [loading, setLoading] = useState(true);
   const [showImportModal, setShowImportModal] = useState(false); 
   const [hidden, setHidden] = useState(false); 
+  const [showAddModal, setShowAddModal] = React.useState(false);
+  const [file, setFile] = useState(null);
+  const [filepath_pernyataan, setFilePathPernyataan] = useState('');
+  const [id_pinjaman, setIdPinjaman] = useState();
 
   const filteredLaporanPiutang = pinjaman.filter((pinjaman) => {
     const angsuranStatus = pinjaman?.AngsuranPinjaman?.[0]?.status && pinjaman.AngsuranPinjaman[0].status.toLowerCase() || ""; // Ambil status dari AngsuranPinjaman
@@ -103,16 +109,16 @@ import {
          responseTotalDibayar,
          responsePlafond,
        ] = await Promise.all([
-         axios.get("http://10.70.10.111:5000/total-pinjaman-keseluruhan", {
+         axios.get("http://10.70.10.117:5000/total-pinjaman-keseluruhan", {
            headers: { Authorization: `Bearer ${token}` },
          }),
-         axios.get("http://10.70.10.111:5000/total-peminjam", {
+         axios.get("http://10.70.10.117:5000/total-peminjam", {
            headers: { Authorization: `Bearer ${token}` },
          }),
-         axios.get("http://10.70.10.111:5000/total-dibayar", {
+         axios.get("http://10.70.10.117:5000/total-dibayar", {
            headers: { Authorization: `Bearer ${token}` },
          }),
-         axios.get("http://10.70.10.111:5000/latest-plafond-saat-ini", {
+         axios.get("http://10.70.10.117:5000/latest-plafond-saat-ini", {
            headers: { Authorization: `Bearer ${token}` },
          }),
        ]);
@@ -143,7 +149,7 @@ import {
   const getPinjaman = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.111:5000/pinjaman", {
+      const response = await axios.get("http://10.70.10.117:5000/pinjaman", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -159,7 +165,7 @@ import {
   const getPinjamanData = async (req, res) =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.111:5000/pinjaman-data", {
+      const response = await axios.get("http://10.70.10.117:5000/pinjaman-data", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -175,7 +181,7 @@ import {
   const getPlafond = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.111:5000/jumlah-plafond", {
+      const response = await axios.get("http://10.70.10.117:5000/jumlah-plafond", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -216,27 +222,34 @@ import {
     setSearchQuery(event.target.value.toLowerCase());
   };
 
-    const handleImportButtonClick = () => {
-      setShowImportModal(true);
-    }
-    
-    const handleImportSuccess = () => {
-      getPinjaman();
-      getPinjamanData();
-      getPlafond();
-      window.location.reload();
-      // getAntrean();
-      // toast.success("Data Pinjaman berhasil diimport!", {
-      //     position: "top-right",
-      //     autoClose: 5000,
-      //     hideProgressBar: true,
-      // });
-    };
+  const handleImportButtonClick = () => {
+    setShowImportModal(true);
+  }
   
+  const handleImportSuccess = () => {
+    getPinjaman();
+    getPinjamanData();
+    getPlafond();
+    window.location.reload();
+    // getAntrean();
+    // toast.success("Data Pinjaman berhasil diimport!", {
+    //     position: "top-right",
+    //     autoClose: 5000,
+    //     hideProgressBar: true,
+    // });
+  };
+
+  const handleScreeningClick = (pinjaman) => {
+    // console.log('Selected Pinjaman:', pinjaman); 
+    history.push({
+      pathname: "/admin/surat-pernyataan", 
+      state: {selectedPinjaman: pinjaman}
+    }); 
+  };
   
 
   const downloadCSV = (data) => {
-  const header = ["id_pinjaman", "tanggal_pengajuan", "tanggal_penerimaan", "jumlah_pinjaman", "jumlah_angsuran", "pinjaman_setelah_pembulatan", "rasio_angsuran", "keperluan", "id_peminjam", "id_asesor", "sudah_dibayar", "belum_dibayar", "bulan_angsuran", "status"];
+  const header = ["id_pinjaman", "tanggal_pengajuan", "tanggal_penerimaan", "jumlah_pinjaman", "jumlah_angsuran", "pinjaman_setelah_pembulatan", "rasio_angsuran", "keperluan", "id_peminjam", "id_asesor", "sudah_dibayar", "belum_dibayar", "bulan_angsuran", "status", "filepath_pernyataan"];
 
   if (!Array.isArray(data) || data.length === 0) {
     console.error("Data untuk CSV tidak valid atau kosong.");
@@ -282,7 +295,8 @@ import {
       totalSudahDibayar,
       belumDibayar,
       bulanAngsuran,
-      status
+      status, 
+      item.filepath_pernyataan ?? "N/A",
     ];
 
 
@@ -393,6 +407,94 @@ import {
   
     doc.save("laporan_piutang_karyawan.pdf");
   };
+
+  // console.log("Id pinjaman: ", pinjaman.id_pinjaman);
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleFileUpload = async() => {
+    if (!file) {
+      toast.error("Silakan pilih file PDF terlebih dahulu.");
+      return;
+    }
+    if (file.type !== "application/pdf") {
+      toast.error("File harus berformat PDF.");
+      return;
+    }
+    
+
+    const formData = new FormData();
+    formData.append("pdf-file", file);
+    formData.append("id_pinjaman", pinjaman.id_pinjaman);
+
+    console.log('Id pinjaman: ', pinjaman.id_pinjaman);
+    console.log('Form data: ', formData);
+
+    fetch("http://10.70.10.117:5000/upload-pernyataan", {
+      method: "PUT",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then(async (response) => {
+      const data = await response.json();
+      console.log('File path saved: ', data.filePath);
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal mengunggah.");
+      }
+
+      setFilePathPernyataan(data.filePath);
+      toast.success("File berhasil diunggah.");
+      // setShowImportModal(false);
+      setShowAddModal(false);
+      // handleFilepath();
+      // onSuccess();
+    })
+    .catch((error) => {
+      toast.error(`Gagal: ${error.message}`);
+    });
+
+  };
+
+  const handleFilepath = async(pinjaman) => {
+    // if (!pinjaman || !pinjaman.id_pinjaman) {
+    //   console.error('Pinjaman atau id_pinjaman tidak ditemukan.');
+    //   toast.error('Data pinjaman belum tersedia.');
+    //   return;
+    // }
+    
+    handleFileUpload();
+    try {
+  
+      console.log('Id pinjaman: ', pinjaman.id_pinjaman);
+      console.log('Filepath: ', pinjaman.filepath_pernyataan);
+      
+      await axios.patch(`http://10.70.10.117:5000/unggah-permohonan/${pinjaman.id_pinjaman}`, {
+        
+        filepath_pernyataan
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+      },
+      });
+      toast.success('Filepath berhasil diperbarui!', {
+        position: "top-right", 
+        autoClose: 5000,
+        hideProgressBar: true,
+      });
+      
+    } catch (error) {
+      console.error('Gagal mengupdate filepath:', error.response ? error.response.data : error.message);
+      toast.error('Gagal memperbarui filepath.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+      });
+    }
+  }
 
   return (
     <>
@@ -623,6 +725,7 @@ import {
                           <th className="border-0 center">Belum Dibayar</th>
                           <th className="border-0 center">Sisa Bulan</th>
                           <th className="border-0 center">Status</th>
+                          <th className="border-0 text-wrap">Aksi</th>
                         </tr>
                         </thead>
                         <tbody className="scroll scroller-tbody">
@@ -636,6 +739,8 @@ import {
                         
                               }, 0)
                             : 0;
+
+                            
                 
                           return ( 
                             <tr key={pinjaman.id_pinjaman}>
@@ -656,7 +761,6 @@ import {
                               {formatRupiah(pinjaman.AngsuranPinjaman && pinjaman.AngsuranPinjaman.length > 0 ? pinjaman.AngsuranPinjaman[0].belum_dibayar : (pinjaman.pinjaman_setelah_pembulatan))}
                               </td>
                               <td className="text-center">{pinjaman.AngsuranPinjaman && pinjaman.AngsuranPinjaman.length > 0 ? 60 - pinjaman.AngsuranPinjaman[0].bulan_angsuran : '60'}</td>
-            
                               <td className="text-center">
                               {pinjaman.status_pelunasan === "Lunas" ? (
                                 <Badge pill bg="success p-2">
@@ -667,7 +771,33 @@ import {
                                 Belum Lunas
                                 </Badge >
                               )}
-                            </td>
+                              </td>
+                              <td>
+                                 <Button
+                                  className="btn-fill pull-right mb-2"
+                                  type="button"
+                                  variant="info"
+                                  onClick={() => handleScreeningClick(pinjaman)}
+                                  hidden={pinjaman.rasio_angsuran <= 20}
+                                  style={{width: 125, fontSize:14}}>
+                                  <FaFileContract style={{ marginRight: '8px' }} />
+                                  Lampiran
+                                </Button>
+
+                                <Button
+                                  className="btn-fill pull-right mb-2"
+                                  type="button"
+                                  variant="warning"
+                                  // hidden={pinjaman.rasio_angsuran <= 20}
+                                  onClick={() => setShowAddModal(true, pinjaman.id_pinjaman)}
+                                  style={{width: 125, fontSize:14}}>
+                                  <FaFileContract style={{ marginRight: '8px' }}/>
+                                  Unggah Permohonan
+
+                                  {/* {console.log("Id Pinjaman dari table: ", pinjaman.id_pinjaman)} */}
+
+                                </Button>
+                              </td>
                             </tr>
                           );
                         })}
@@ -692,6 +822,7 @@ import {
             </Col>
           </Row>
         </Container>
+       
       </div>
       ):
       ( <>
@@ -701,6 +832,59 @@ import {
           </div>
         </>
       )}
+
+        <Modal
+            className="modal-primary"
+            show={showAddModal}
+            onHide={() => setShowAddModal(false)}
+        >
+            <Modal.Header className="text-center pb-1">
+                <h3 className="mt-3 mb-0">Form Permohonan Top-up Angsuran</h3>
+            </Modal.Header>
+            <Modal.Body className="text-left pt-0">
+                <hr />
+                <Form onSubmit={handleFilepath}>
+                <Card> 
+                    <Card.Header as="h4" className="mt-1"><strong>Top-up Angsuran</strong></Card.Header><hr/>
+                    <Card.Body>
+                        <Card.Text>
+                            <p>Merupakan kondisi dimana keluarga calon peminjam <strong>SETUJU</strong> untuk<strong> meningkatkan jumlah angsuran per-bulan yang dipotong dari Gaji Karyawan Peminjam</strong> untuk mencapai jumlah pinjaman yang diperlukan.</p>
+                            <p>Silakan mengunggah Surat Pernyataan yang telah ditandatangani oleh:
+                            </p>
+                            <ol>
+                                <li>Karyawan Peminjam</li>
+                                <li>Perwakilan Keluarga Karyawan (suami/istri)</li>
+                                <li>Manager/Supervisor/Kabag</li>
+                                <li>Direktur Keuangan</li>
+                                <li>Presiden Direktur</li>
+                              </ol>
+                        </Card.Text>
+                    </Card.Body>
+                </Card>
+                <span className="text-danger required-select">(*) Wajib diisi.</span>
+                    <Row>
+                        <Col md="12">
+                            <Form.Group>
+                            <span className="text-danger">*</span>
+                                <label>Unggah Surat Pernyataan</label>
+                                <input type="file" accept=".pdf" onChange={handleFileChange} />
+                            </Form.Group>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col md="12">
+                            <div className="modal-footer d-flex flex-column">
+                                <a href="#ajukan">
+                                  <Button className="btn-fill w-100 mt-3" variant="primary" onClick={() => handleFilepath(pinjaman.id_pinjaman)}>
+                                      Simpan
+                                  </Button>
+                                </a>
+                            </div>
+                        </Col>
+                    </Row>
+                </Form>
+            </Modal.Body>
+        </Modal>
     </>
   );
 }

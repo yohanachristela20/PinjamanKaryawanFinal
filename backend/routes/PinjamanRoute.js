@@ -292,10 +292,10 @@ router.get("/plafond-saat-ini", async (req, res) => {
     }
 
     const plafondAwal = parseFloat(latestPlafond.plafond_saat_ini);
-    console.log("Plafond awal: ", plafondAwal);
-    console.log("Stored jumlah pinjaman: ", storedJumlahPinjaman);
+    // console.log("Plafond awal: ", plafondAwal);
+    // console.log("Stored jumlah pinjaman: ", storedJumlahPinjaman);
     const plafondSaatIni = plafondAwal - storedJumlahPinjaman;
-    console.log("Plafond saat ini: ", plafondSaatIni);
+    // console.log("Plafond saat ini: ", plafondSaatIni);
     
     return res.status(200).json({
       plafondAwal,
@@ -324,7 +324,7 @@ router.get("/plafond-update-saat-ini/:id_pinjaman", async (req, res) => {
 
     if (plafondSaatIni) {
       const plafond = parseFloat(plafondSaatIni.plafond_saat_ini);
-      console.log("Data plafond saat ini:", plafond);
+      // console.log("Data plafond saat ini:", plafond);
 
       return res.status(200).json({
         plafondSaatIni: plafond
@@ -408,7 +408,7 @@ router.get("/pdf/:id_pinjaman", async (req, res) => {
       return res.status(404).json({message: 'File tidak ditemukan di server'});
     }
 
-    console.log("Filepath: ", filePath);
+    // console.log("Filepath: ", filePath);
 
     res.sendFile(filePath);
   } catch (error) {
@@ -428,7 +428,7 @@ router.get("/latest-plafond-saat-ini", async (req, res) => {
     });  
 
     if (latestPinjaman) {
-      console.log("Latest Pinjaman:", latestPinjaman.id_pinjaman);
+      // console.log("Latest Pinjaman:", latestPinjaman.id_pinjaman);
 
       // Cek status_pengajuan dan status_transfer dari latestPinjaman
       const pinjamanStatus = await Pinjaman.findOne({
@@ -437,12 +437,12 @@ router.get("/latest-plafond-saat-ini", async (req, res) => {
         raw: true,
       });
 
-      console.log("Status Pinjaman:", pinjamanStatus);
+      // console.log("Status Pinjaman:", pinjamanStatus);
 
       if (
         pinjamanStatus?.status_transfer !== "Selesai"
       ) {
-        console.log("Pinjaman terakhir BELUM ditransfer.");
+        // console.log("Pinjaman terakhir BELUM ditransfer.");
 
         // Ambil plafond terbaru dari id_pinjaman = null
         const latestPlafondNull = await PlafondUpdate.findOne({
@@ -453,7 +453,7 @@ router.get("/latest-plafond-saat-ini", async (req, res) => {
         });
 
         latestPlafondValue = latestPlafondNull?.plafond_saat_ini || null;
-        console.log("Plafond dari id_pinjaman NULL:", latestPlafondValue);
+        // console.log("Plafond dari id_pinjaman NULL:", latestPlafondValue);
       } else {
         // Jika pinjaman sudah "Diterima" dan "Selesai", cari plafond dari PlafondUpdate
         const plafondUpdate = await PlafondUpdate.findOne({
@@ -463,7 +463,7 @@ router.get("/latest-plafond-saat-ini", async (req, res) => {
         });
 
         latestPlafondValue = plafondUpdate?.plafond_saat_ini || null;
-        console.log("Plafond dari PlafondUpdate:", latestPlafondValue);
+        // console.log("Plafond dari PlafondUpdate:", latestPlafondValue);
       }
     }
 
@@ -485,7 +485,7 @@ router.get("/latest-plafond-saat-ini", async (req, res) => {
       });
 
       latestPlafondValue = latestPlafond?.plafond_saat_ini || null;
-      console.log("Plafond dari pinjaman yang sudah diterima & selesai:", latestPlafondValue);
+      // console.log("Plafond dari pinjaman yang sudah diterima & selesai:", latestPlafondValue);
     }
 
     // Jika masih null, ambil dari Plafond utama
@@ -498,7 +498,7 @@ router.get("/latest-plafond-saat-ini", async (req, res) => {
         });
 
         latestPlafondValue = latestPlafondNull?.plafond_saat_ini || null;
-      console.log("Plafond dari tabel Plafond:", latestPlafondValue);
+      // console.log("Plafond dari tabel Plafond:", latestPlafondValue);
     }
 
     // Jika tetap tidak ada data, kirim respon 404
@@ -506,7 +506,7 @@ router.get("/latest-plafond-saat-ini", async (req, res) => {
       return res.status(404).json({ message: "Data plafond tidak ditemukan" });
     }
 
-    console.log("Latest Plafond:", parseFloat(latestPlafondValue));
+    // console.log("Latest Plafond:", parseFloat(latestPlafondValue));
     return res.status(200).json({ latestPlafond: parseFloat(latestPlafondValue) });
 
   } catch (error) {
@@ -566,7 +566,7 @@ router.put('/pinjaman/:id_pinjaman', async (req, res) => {
         const { id_pinjaman } = req.params;
         let { status_transfer, id_asesor } = req.body;
       
-        console.log("Data yang diterima di server:", req.body);
+        // console.log("Data yang diterima di server:", req.body);
       
         status_transfer = status_transfer || "Belum Ditransfer";
       
@@ -605,7 +605,7 @@ router.put('/pengajuan/:id_pinjaman', async (req, res) => {
         const { id_pinjaman } = req.params;
         let { status_pengajuan, status_transfer, id_asesor } = req.body;
       
-        console.log("Data yang diterima di server:", req.body);
+        // console.log("Data yang diterima di server:", req.body);
       
         status_pengajuan = status_pengajuan || "Ditunda";
       
@@ -632,6 +632,32 @@ router.put('/pengajuan/:id_pinjaman', async (req, res) => {
         }
 });
 
+router.patch('/unggah-permohonan/:id_pinjaman', async (req, res) => {
+  const { id_pinjaman } = req.params;
+  let { filepath_pernyataan } = req.body;
+
+  // console.log("Id pinjaman dari beranda: ", id_pinjaman)
+  // console.log("Data yang diterima di server:", filepath_pernyataan);
+
+  filepath_pernyataan = req.body.filepath_pernyataan;
+  // console.log('filepath update dari beranda: ', filepath_pernyataan);
+
+  try {      
+    const pinjaman = await Pinjaman.findByPk(id_pinjaman);
+    if (!pinjaman) {
+      return res.status(404).json({ message: 'Pinjaman tidak ditemukan' });
+    }
+
+    pinjaman.filepath_pernyataan = filepath_pernyataan;
+    await pinjaman.save();
+
+    res.status(200).json({ message: 'Filepath pinjaman berhasil diperbarui', pinjaman });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 const sendEmailNotification = async(pinjaman) => {
   try {
     const transporter = nodemailer.createTransport({
@@ -651,14 +677,14 @@ const sendEmailNotification = async(pinjaman) => {
       ID Peminjam: ${pinjaman.id_peminjam}\n
       Jumlah: ${formatRupiah(pinjaman.jumlah_pinjaman)}\n
       Keperluan: ${pinjaman.keperluan}\n
-      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.111:3000\n\n
+      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.117:3000\n\n
       Regards,\n
       Campina Dev Team.
       `, 
     };
 
     await transporter.sendMail(mailOptions); 
-    console.log("Notifikasi berhasil dikirim ke email finance."); 
+    // console.log("Notifikasi berhasil dikirim ke email finance."); 
   } catch (error) {
     console.error("Gagal mengirim email notifikasi: ", error);
   }
@@ -802,6 +828,7 @@ router.post('/pengajuan/import-csv', upload.single("csvfile"), async (req,res) =
       not_compliant: row.not_compliant === "true",
       id_peminjam: parseInt(row.id_peminjam, 10),
       id_asesor: parseInt(row.id_asesor, 10) || null,
+      filepath_pernyataan: row.filepath_pernyataan,
     });
   })
   .on("end", async () => {
@@ -817,7 +844,7 @@ router.post('/pengajuan/import-csv', upload.single("csvfile"), async (req,res) =
                   if (!asesorExists) {
                   throw new Error(`Asesor dengan id_asesor ${pinjaman.id_asesor} tidak ditemukan`);
                   }
-          console.log("Asesor: ", asesorExists);
+          // console.log("Asesor: ", asesorExists);
           }
 
           const peminjamExists = await Karyawan.findByPk(pinjaman.id_peminjam); 
@@ -831,8 +858,8 @@ router.post('/pengajuan/import-csv', upload.single("csvfile"), async (req,res) =
       const tanggalPengajuan = data_pengajuan.reduce((acc, item) => item.tanggal_pengajuan, "");
       const idPinjaman = data_pengajuan.reduce((acc, item) => item.id_pinjaman, "");
 
-      console.log("Id Pinjaman:", idPinjaman);
-      console.log("Tanggal pengajuan: ", tanggalPengajuan);
+      // console.log("Id Pinjaman:", idPinjaman);
+      // console.log("Tanggal pengajuan: ", tanggalPengajuan);
 
       const totalPinjaman = data_pengajuan.reduce(( sum, item ) => sum + item.jumlah_pinjaman, 0);
 
@@ -862,7 +889,7 @@ router.post('/pengajuan/import-csv', upload.single("csvfile"), async (req,res) =
 
     let plafondBaru = parseFloat(plafondTerakhir.plafond_saat_ini || plafondTerakhir.jumlah_plafond) - totalPinjaman;
 
-    console.log("Plafond baru: ", plafondBaru);
+    // console.log("Plafond baru: ", plafondBaru);
 
     const antreans = await AntreanPengajuan.findAll({
       attributes: ['nomor_antrean', 'id_pinjaman'],
@@ -870,7 +897,7 @@ router.post('/pengajuan/import-csv', upload.single("csvfile"), async (req,res) =
       transaction,
     });
 
-    console.log("Antreans: ", antreans);
+    // console.log("Antreans: ", antreans);
 
     if (antreans.length > 0) {
       const antreanData = await Pinjaman.findAll({
@@ -881,20 +908,20 @@ router.post('/pengajuan/import-csv', upload.single("csvfile"), async (req,res) =
         transaction,
       });
 
-      console.log("Antrean data: ", antreanData);
+      // console.log("Antrean data: ", antreanData);
 
       const pinjamanMap = new Map(antreanData.map(item => [item.id_pinjaman, item.jumlah_pinjaman]));
 
-      console.log("Pinjaman Map: ", pinjamanMap);
+      // console.log("Pinjaman Map: ", pinjamanMap);
 
       let plafondSaatIni = plafondBaru;
-      console.log("Plafondsaatini = plafondbaru: ", plafondSaatIni);
+      // console.log("Plafondsaatini = plafondbaru: ", plafondSaatIni);
 
       for (const antrean of antreans) {
         const jumlahPinjamanAntrean = pinjamanMap.get(antrean.id_pinjaman) || 0;
 
         let plafondAkhir = parseFloat((plafondSaatIni - jumlahPinjamanAntrean).toFixed(2));
-        console.log("Plafond saat ini: ", plafondAkhir);
+        // console.log("Plafond saat ini: ", plafondAkhir);
 
         if (plafondSaatIni > 0) {
           let formattedToday = new Date().toISOString().split("T")[0];

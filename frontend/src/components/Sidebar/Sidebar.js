@@ -8,7 +8,7 @@ function Sidebar({ color, image, routes }) {
 
   // Filter routes to exclude "/screening-karyawan" and "/login" first
   const filteredRoutes = routes.filter(
-    (route) => !["/screening-karyawan", "/login"].includes(route.path)
+    (route) => !["/screening-karyawan", "/login", "/surat-pernyataan"].includes(route.path)
   );
 
   const roleFilteredRoutes = filteredRoutes.filter((route) => {

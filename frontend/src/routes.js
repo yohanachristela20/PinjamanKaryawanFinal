@@ -15,6 +15,7 @@ import MasterUser from "views/MasterUser.js";
 import DashboardKaryawan from "views/DashboardKaryawan.js";
 import RiwayatPinjamanKaryawan from "views/RiwayatPinjamanKaryawan";
 import AngsuranFinance from "views/AngsuranFinance";
+import SuratPernyataan from "views/SuratPernyataan";
 
 import Login from "views/Login.js";
 
@@ -111,20 +112,21 @@ const dashboardRoutes = [
   //   component: BerandaKaryawan,
   //   layout: "/karyawan"
   // },
-  {
-    path: "/screening-pinjaman",
-    name: "Screening Pinjaman",
-    icon: "nc-icon nc-circle-09",
-    component: ScreeningPinjamanKaryawan,
-    layout: "/karyawan"
-  },
-  {
-    path: "/screening2",
-    name: "Screening Pinjaman 2",
-    icon: "nc-icon nc-circle-09",
-    component: ScreeningPinjamanKaryawan2,
-    layout: "/karyawan"
-  },
+  
+  // {
+  //   path: "/screening-pinjaman",
+  //   name: "Screening Pinjaman",
+  //   icon: "nc-icon nc-circle-09",
+  //   component: ScreeningPinjamanKaryawan,
+  //   layout: "/karyawan"
+  // },
+  // {
+  //   path: "/screening2",
+  //   name: "Screening Pinjaman 2",
+  //   icon: "nc-icon nc-circle-09",
+  //   component: ScreeningPinjamanKaryawan2,
+  //   layout: "/karyawan"
+  // },
   {
     path: "/riwayat-pengajuan",
     name: "Riwayat Pengajuan",
@@ -164,6 +166,14 @@ const dashboardRoutes = [
     name: "Screening Karyawan",
     icon: "nc-icon nc-circle-09",
     component: ScreeningKaryawan,
+    layout: "/admin"
+  },
+
+  {
+    path: "/surat-pernyataan",
+    name: "Surat Pernyataan",
+    icon: "nc-icon nc-circle-09",
+    component: SuratPernyataan,
     layout: "/admin"
   },
   

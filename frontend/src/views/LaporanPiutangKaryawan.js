@@ -47,7 +47,8 @@ import {
   const [showAddModal, setShowAddModal] = React.useState(false);
   const [file, setFile] = useState(null);
   const [filepath_pernyataan, setFilePathPernyataan] = useState('');
-  const [id_pinjaman, setIdPinjaman] = useState();
+  const [id_pinjaman, setIdPinjaman] = useState("");
+  const [pinjamanById, setPinjamanById] = useState([]);
 
   const filteredLaporanPiutang = pinjaman.filter((pinjaman) => {
     const angsuranStatus = pinjaman?.AngsuranPinjaman?.[0]?.status && pinjaman.AngsuranPinjaman[0].status.toLowerCase() || ""; // Ambil status dari AngsuranPinjaman
@@ -177,6 +178,28 @@ import {
     //   setLoading(false);
     }
   };
+
+  // ubah disini
+  const getPinjamanById = async(idPinjaman) => {
+    try {
+      const response = await axios.get(`http://10.70.10.117:5000/pinjaman/${idPinjaman}`, {
+          headers: {
+              Authorization: `Bearer ${token}`,
+          },
+      });
+      setPinjamanById(response.data);
+    } catch (error) {
+      console.error("Error fetching pinjaman data:", error.message); 
+    }
+  };
+
+  useEffect(() => {
+      if (id_pinjaman) {
+          getPinjamanById(id_pinjaman);
+      }
+  }, [id_pinjaman]);
+
+  console.log("Pinjaman by id:", pinjamanById.id_pinjaman);
 
   const getPlafond = async () =>{
     try {
@@ -740,8 +763,6 @@ import {
                               }, 0)
                             : 0;
 
-                            
-                
                           return ( 
                             <tr key={pinjaman.id_pinjaman}>
                               <td className="text-center">{pinjaman.id_pinjaman}</td>

@@ -165,10 +165,10 @@ function DashboardKaryawan() {
     setTanggalPengajuan(today); 
   }, []);
 
-useEffect(() => {
-  const storedJumlah = localStorage.getItem("jumlah_pinjaman");
-  if(storedJumlah) setJumlahPinjaman(storedJumlah); 
-}, []);
+// useEffect(() => {
+//   const storedJumlah = localStorage.getItem("jumlah_pinjaman");
+//   if(storedJumlah) setJumlahPinjaman(storedJumlah); 
+// }, []);
 
 
 const getNomorAntrean = async() => {

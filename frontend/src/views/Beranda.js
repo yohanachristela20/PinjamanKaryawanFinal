@@ -197,7 +197,7 @@ function Beranda() {
   const getPinjaman = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.117:5000/pinjaman", {
+      const response = await axios.get("http://10.70.10.124:5000/pinjaman", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -216,7 +216,7 @@ function Beranda() {
   const getPinjamanData = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.117:5000/pinjaman-data", {
+      const response = await axios.get("http://10.70.10.124:5000/pinjaman-data", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -236,7 +236,7 @@ function Beranda() {
   const getAntrean = async () => {
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.117:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.124:5000/antrean-pengajuan", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -253,7 +253,7 @@ function Beranda() {
 
   const fetchAntrean = async () => {
     try {
-      const response = await axios.get("http://10.70.10.117:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.124:5000/antrean-pengajuan", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -285,7 +285,7 @@ function Beranda() {
   useEffect(() => {
     const fetchYears = async () => {
       try {
-        const response = await axios.get("http://10.70.10.117:5000/filter-piutang", {
+        const response = await axios.get("http://10.70.10.124:5000/filter-piutang", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -310,7 +310,7 @@ function Beranda() {
   
       try {
         const response = await axios.get(
-          `http://10.70.10.117:5000/user-details/${username}`,
+          `http://10.70.10.124:5000/user-details/${username}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -332,16 +332,16 @@ function Beranda() {
     const fetchSummaryData = async () => {
           try {
             const [responseTotalPinjaman, responseTotalPeminjam, responseTotalDibayar, responsePlafond] = await Promise.all([
-              axios.get("http://10.70.10.117:5000/total-pinjaman-keseluruhan", {
+              axios.get("http://10.70.10.124:5000/total-pinjaman-keseluruhan", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
-              axios.get("http://10.70.10.117:5000/total-peminjam", {
+              axios.get("http://10.70.10.124:5000/total-peminjam", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
-              axios.get("http://10.70.10.117:5000/total-dibayar", {
+              axios.get("http://10.70.10.124:5000/total-dibayar", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
-              axios.get("http://10.70.10.117:5000/latest-plafond-saat-ini", {
+              axios.get("http://10.70.10.124:5000/latest-plafond-saat-ini", {
                 headers: { Authorization: `Bearer ${token}` },
               }),
             ]);
@@ -477,7 +477,7 @@ function Beranda() {
 
       // console.log("Payload yang dikirim ke server:", payload);
 
-      const response = await axios.put(`http://10.70.10.117:5000/pengajuan/${pinjaman.id_pinjaman}`, {
+      const response = await axios.put(`http://10.70.10.124:5000/pengajuan/${pinjaman.id_pinjaman}`, {
         status_pengajuan: "Diterima",
 
       }, {
@@ -643,7 +643,7 @@ function Beranda() {
 
   const dataPinjaman = async (selectedYear) => {
     try {
-      const response = await axios.get("http://10.70.10.117:5000/data-pinjaman", {
+      const response = await axios.get("http://10.70.10.124:5000/data-pinjaman", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -687,7 +687,7 @@ const dataPerDivisi = async (selectedDepartemen, selectedMonth = "", selectedYea
 
         // console.log("Params:", { departemen: selectedDepartemen, bulan, tahun });
 
-        const response = await axios.get("http://10.70.10.117:5000/data-divisi", {
+        const response = await axios.get("http://10.70.10.124:5000/data-divisi", {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -735,7 +735,7 @@ const dataPeminjamPerDivisi = async (selectedDepartemenPeminjam, selectedMonthPe
       const tahun = selectedYear || new Date().getFullYear();
       const bulan = selectedMonthPeminjam === "" ? undefined : selectedMonthPeminjam.padStart(2, '0');
 
-      const response = await axios.get("http://10.70.10.117:5000/data-peminjam-per-divisi", {
+      const response = await axios.get("http://10.70.10.124:5000/data-peminjam-per-divisi", {
           headers: {
               Authorization: `Bearer ${token}`,
           },
@@ -796,7 +796,7 @@ const dataPeminjamPerDivisi = async (selectedDepartemenPeminjam, selectedMonthPe
     console.log('Id pinjaman: ', pinjaman.id_pinjaman);
     console.log('Form data: ', formData);
 
-    fetch("http://10.70.10.117:5000/upload-pernyataan", {
+    fetch("http://10.70.10.124:5000/upload-pernyataan", {
       method: "PUT",
       body: formData,
       headers: {
@@ -836,7 +836,7 @@ const dataPeminjamPerDivisi = async (selectedDepartemenPeminjam, selectedMonthPe
       console.log('Id pinjaman: ', pinjaman.id_pinjaman);
       console.log('Filepath: ', pinjaman.filepath_pernyataan);
       
-      await axios.patch(`http://10.70.10.117:5000/unggah-permohonan/${pinjaman.id_pinjaman}`, {
+      await axios.patch(`http://10.70.10.124:5000/unggah-permohonan/${pinjaman.id_pinjaman}`, {
         
         filepath_pernyataan
       }, {

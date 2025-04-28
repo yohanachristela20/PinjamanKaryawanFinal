@@ -122,7 +122,7 @@ function Angsuran() {
     try {
       if (!token || !username) return;
 
-      const response = await axios.get(`http://10.70.10.117:5000/user-details/${username}`, {
+      const response = await axios.get(`http://10.70.10.124:5000/user-details/${username}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -153,7 +153,7 @@ function Angsuran() {
     const getAngsuran = async () => {
       try {
         // setLoading(true);
-        const response = await axios.get('http://10.70.10.117:5000/angsuran', {
+        const response = await axios.get('http://10.70.10.124:5000/angsuran', {
           headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -177,7 +177,7 @@ function Angsuran() {
       try {
         // setLoading(true);
         const response = await axios.put(
-          `http://10.70.10.117:5000/status-update`,
+          `http://10.70.10.124:5000/status-update`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -217,7 +217,7 @@ function Angsuran() {
     
       try {
         // setLoading(true);
-        const response = await axios.get("http://10.70.10.117:5000/karyawan-data", {
+        const response = await axios.get("http://10.70.10.124:5000/karyawan-data", {
           headers: {
             Authorization: `Bearer ${token}`, 
           },

@@ -632,15 +632,16 @@ router.put('/pengajuan/:id_pinjaman', async (req, res) => {
         }
 });
 
-router.patch('/unggah-permohonan/:id_pinjaman', async (req, res) => {
+router.put('/unggah-permohonan/:id_pinjaman', async (req, res) => {
   const { id_pinjaman } = req.params;
   let { filepath_pernyataan } = req.body;
+  const transaction = await db.transaction();
 
   // console.log("Id pinjaman dari beranda: ", id_pinjaman)
   // console.log("Data yang diterima di server:", filepath_pernyataan);
 
-  filepath_pernyataan = req.body.filepath_pernyataan;
-  // console.log('filepath update dari beranda: ', filepath_pernyataan);
+  // filepath_pernyataan = req.body.filepath_pernyataan;
+  console.log('filepath update dari beranda: ', filepath_pernyataan);
 
   try {      
     const pinjaman = await Pinjaman.findByPk(id_pinjaman);
@@ -648,8 +649,12 @@ router.patch('/unggah-permohonan/:id_pinjaman', async (req, res) => {
       return res.status(404).json({ message: 'Pinjaman tidak ditemukan' });
     }
 
-    pinjaman.filepath_pernyataan = filepath_pernyataan;
-    await pinjaman.save();
+    await pinjaman.update(
+      {filepath_pernyataan},
+      {transaction}
+    );
+
+    await transaction.commit();
 
     res.status(200).json({ message: 'Filepath pinjaman berhasil diperbarui', pinjaman });
   } catch (error) {
@@ -677,7 +682,7 @@ const sendEmailNotification = async(pinjaman) => {
       ID Peminjam: ${pinjaman.id_peminjam}\n
       Jumlah: ${formatRupiah(pinjaman.jumlah_pinjaman)}\n
       Keperluan: ${pinjaman.keperluan}\n
-      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.117:3000\n\n
+      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.124:3000\n\n
       Regards,\n
       Campina Dev Team.
       `, 

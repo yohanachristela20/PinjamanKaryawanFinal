@@ -26,7 +26,7 @@ function Login() {
     }
   
     try {
-      const response = await axios.post('http://10.70.10.124:5000/user-login', {
+      const response = await axios.post('http://10.70.10.120:5000/user-login', {
           username: username,
           password: password,
           role: role,

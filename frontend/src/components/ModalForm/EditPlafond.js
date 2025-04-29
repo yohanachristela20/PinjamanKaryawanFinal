@@ -30,7 +30,7 @@ const EditPlafond = ({showEditModal, setShowEditModal, plafond, onSuccess}) => {
         e.preventDefault();
 
         try {
-            await axios.patch(`http://10.70.10.124:5000/plafond/${plafond.id_plafond}`, {
+            await axios.patch(`http://10.70.10.120:5000/plafond/${plafond.id_plafond}`, {
                 id_plafond,
                 tanggal_penetapan,
                 jumlah_plafond,

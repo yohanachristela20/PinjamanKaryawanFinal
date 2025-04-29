@@ -7,6 +7,7 @@ import { createPinjaman,
          filterPiutangTahunan,
          getDataPerDivisi,
          getDataPeminjamPerDivisi,
+         deleteFile,
  } from "../controllers/PinjamanController.js"; 
 
 import Plafond from "../models/PlafondModel.js";
@@ -103,6 +104,8 @@ router.get('/data-pinjaman', getDataPinjaman);
 router.get('/filter-piutang', filterPiutangTahunan);
 router.get('/data-divisi', getDataPerDivisi); 
 router.get('/data-peminjam-per-divisi', getDataPeminjamPerDivisi);
+
+router.delete('/delete-file/:id_pinjaman', deleteFile);
 
 router.put("/upload-pernyataan", uploadPernyataan);
 
@@ -682,7 +685,7 @@ const sendEmailNotification = async(pinjaman) => {
       ID Peminjam: ${pinjaman.id_peminjam}\n
       Jumlah: ${formatRupiah(pinjaman.jumlah_pinjaman)}\n
       Keperluan: ${pinjaman.keperluan}\n
-      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.124:3000\n\n
+      Transfer pinjaman dan lakukan konfirmasi di http://10.70.10.120:3000\n\n
       Regards,\n
       Campina Dev Team.
       `, 

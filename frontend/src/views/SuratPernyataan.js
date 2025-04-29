@@ -12,7 +12,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 // import PDFViewer from "./pdfViewer.js";
 
-const BASE_URL = 'http://10.70.10.124:5000';
+const BASE_URL = 'http://10.70.10.120:5000';
 
 export const fetchHistoryPinjaman = async (idPeminjam) => {
   return axios.get(`${BASE_URL}/history-pinjaman/${idPeminjam}`, {
@@ -72,7 +72,7 @@ function SuratPernyataan() {
   useEffect(() => {
     const fetchPdf = async () => {
       try {
-        const response = await fetch(`http://10.70.10.124:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
+        const response = await fetch(`http://10.70.10.120:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -120,29 +120,29 @@ function SuratPernyataan() {
           responseTotalJumlahPinjaman,
           responsePlafond,
         ] = await Promise.all([
-          axios.get(`http://10.70.10.124:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
+          axios.get(`http://10.70.10.120:5000/angsuran/total-sudah-dibayar/${selectedPinjaman?.id_peminjam}`, {
             headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
-          axios.get(`http://10.70.10.124:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
+          axios.get(`http://10.70.10.120:5000/pinjaman/total-pinjaman/${selectedPinjaman?.id_peminjam}`, {
             headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
-          axios.get("http://10.70.10.124:5000/total-pinjaman-keseluruhan", {
+          axios.get("http://10.70.10.120:5000/total-pinjaman-keseluruhan", {
              headers: {
               Authorization: `Bearer ${token}`,
           },
           }),
           await axios.get(
-          `http://10.70.10.124:5000/plafond-update-saat-ini/${selectedPinjaman.id_pinjaman}`,
+          `http://10.70.10.120:5000/plafond-update-saat-ini/${selectedPinjaman.id_pinjaman}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }),
-          // axios.get("http://10.70.10.124:5000/plafond-tersedia", {
+          // axios.get("http://10.70.10.120:5000/plafond-tersedia", {
           //   headers: {
           //     Authorization: `Bearer ${token}`,
           // },
@@ -215,7 +215,7 @@ function SuratPernyataan() {
   useEffect(() => {
     try {
       const fetchPdf = async() => {
-        fetch(`http://10.70.10.124:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
+        fetch(`http://10.70.10.120:5000/pdf/${selectedPinjaman?.id_pinjaman}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => response.blob())
@@ -237,7 +237,7 @@ function SuratPernyataan() {
   }, [selectedPinjaman?.id_pinjaman]);
 
   const updatePinjamanStatus = (status) => {
-    axios.put(`http://10.70.10.124:5000/pinjaman/cancel/${selectedPinjaman.id_pinjaman}`, {
+    axios.put(`http://10.70.10.120:5000/pinjaman/cancel/${selectedPinjaman.id_pinjaman}`, {
       not_compliant: status, 
     }, {
       headers: {
@@ -255,7 +255,7 @@ function SuratPernyataan() {
 
   const getPlafond = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.124:5000/plafond");
+      const response = await axios.get("http://10.70.10.120:5000/plafond");
       setPlafond(response.data);
     } catch (error) {
       console.error("Error fetching data:", error.message); 
@@ -264,7 +264,7 @@ function SuratPernyataan() {
   
   const getPinjaman = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.124:5000/pinjaman");
+      const response = await axios.get("http://10.70.10.120:5000/pinjaman");
       setPinjaman(response.data);
     } catch (error) {
       console.error("Error fetching data:", error.message); 

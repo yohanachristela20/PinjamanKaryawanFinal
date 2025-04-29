@@ -110,16 +110,16 @@ import {
          responseTotalDibayar,
          responsePlafond,
        ] = await Promise.all([
-         axios.get("http://10.70.10.124:5000/total-pinjaman-keseluruhan", {
+         axios.get("http://10.70.10.120:5000/total-pinjaman-keseluruhan", {
            headers: { Authorization: `Bearer ${token}` },
          }),
-         axios.get("http://10.70.10.124:5000/total-peminjam", {
+         axios.get("http://10.70.10.120:5000/total-peminjam", {
            headers: { Authorization: `Bearer ${token}` },
          }),
-         axios.get("http://10.70.10.124:5000/total-dibayar", {
+         axios.get("http://10.70.10.120:5000/total-dibayar", {
            headers: { Authorization: `Bearer ${token}` },
          }),
-         axios.get("http://10.70.10.124:5000/latest-plafond-saat-ini", {
+         axios.get("http://10.70.10.120:5000/latest-plafond-saat-ini", {
            headers: { Authorization: `Bearer ${token}` },
          }),
        ]);
@@ -150,7 +150,7 @@ import {
   const getPinjaman = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.124:5000/pinjaman", {
+      const response = await axios.get("http://10.70.10.120:5000/pinjaman", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -166,7 +166,7 @@ import {
   const getPinjamanData = async (req, res) =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.124:5000/pinjaman-data", {
+      const response = await axios.get("http://10.70.10.120:5000/pinjaman-data", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -182,7 +182,7 @@ import {
   // ubah disini
   const getPinjamanById = async(idPinjaman) => {
     try {
-      const response = await axios.get(`http://10.70.10.124:5000/pinjaman/${idPinjaman}`, {
+      const response = await axios.get(`http://10.70.10.120:5000/pinjaman/${idPinjaman}`, {
           headers: {
               Authorization: `Bearer ${token}`,
           },
@@ -204,7 +204,7 @@ import {
   const getPlafond = async () =>{
     try {
       // setLoading(true);
-      const response = await axios.get("http://10.70.10.124:5000/jumlah-plafond", {
+      const response = await axios.get("http://10.70.10.120:5000/jumlah-plafond", {
         headers: {
           Authorization: `Bearer ${token}`,
       },
@@ -455,7 +455,7 @@ import {
     console.log('Id pinjaman: ', pinjaman.id_pinjaman);
     console.log('Form data: ', formData);
 
-    fetch("http://10.70.10.124:5000/upload-pernyataan", {
+    fetch("http://10.70.10.120:5000/upload-pernyataan", {
       method: "PUT",
       body: formData,
       headers: {
@@ -495,7 +495,7 @@ import {
       console.log('Id pinjaman: ', pinjaman.id_pinjaman);
       console.log('Filepath: ', pinjaman.filepath_pernyataan);
       
-      await axios.patch(`http://10.70.10.124:5000/unggah-permohonan/${pinjaman.id_pinjaman}`, {
+      await axios.patch(`http://10.70.10.120:5000/unggah-permohonan/${pinjaman.id_pinjaman}`, {
         
         filepath_pernyataan
       }, {

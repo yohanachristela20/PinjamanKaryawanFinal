@@ -15,6 +15,40 @@ import path from "path";
 dotenv.config();
 
 
+export const deleteFile = async(req, res) => {
+  try {
+    const pinjaman = await Pinjaman.findOne({
+        where:{
+            id_pinjaman: req.params.id_pinjaman 
+        }
+    });
+    if (!pinjaman) {
+      return res.status(404).json({ msg: "Pinjaman tidak ditemukan"});
+    }
+
+    if (pinjaman.filepath_pernyataan) {
+      const filePath = path.resolve(pinjaman.filepath_pernyataan);
+
+      try {
+        await fs.promises.unlink(filePath);
+        console.log("File berhasil dihapus:", filePath);
+
+        pinjaman.filepath_pernyataan = null;
+        await pinjaman.save();
+
+        return res.status(200).json({ msg: "File berhasil dihapus." });
+      } catch (err) {
+        console.error("Gagal menghapus file:", err.message);
+        return res.status(500).json({ msg: "Gagal menghapus file di server." });
+      }
+    } else {
+      return res.status(400).json({ msg: "Tidak ada file yang perlu dihapus." });
+    }
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+}
+
 export const getPinjaman = async(req, res) => {
     try {
         const response = await Pinjaman.findAll({
@@ -237,7 +271,7 @@ const sendEmailNotification = async(pinjaman) => {
       ID Peminjam: ${pinjaman.id_peminjam}\n
       Jumlah: ${formatRupiah(pinjaman.jumlah_pinjaman)}\n
       Keperluan: ${pinjaman.keperluan}\n
-      Tinjau pengajuan pinjaman di http://10.70.10.124:3000\n\n
+      Tinjau pengajuan pinjaman di http://10.70.10.120:3000\n\n
       Regards,\n
       Campina Dev Team.
       `, 

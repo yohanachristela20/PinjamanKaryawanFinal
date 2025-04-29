@@ -119,7 +119,7 @@ function RiwayatPengajuanKaryawan() {
     try {
       if (!token || !username) return;
 
-      const response = await axios.get(`http://10.70.10.124:5000/user-details/${username}`, {
+      const response = await axios.get(`http://10.70.10.120:5000/user-details/${username}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -139,7 +139,7 @@ function RiwayatPengajuanKaryawan() {
 
   const fetchAntrean = async () => {
     try {
-      const response = await axios.get("http://10.70.10.124:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.120:5000/antrean-pengajuan", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -154,22 +154,22 @@ function RiwayatPengajuanKaryawan() {
   useEffect(()=> {
     try {
       Promise.all([
-        axios.get("http://10.70.10.124:5000/total-pinjaman-keseluruhan", {
+        axios.get("http://10.70.10.120:5000/total-pinjaman-keseluruhan", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
         }),
-        axios.get("http://10.70.10.124:5000/total-peminjam", {
+        axios.get("http://10.70.10.120:5000/total-peminjam", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
         }),
-        axios.get("http://10.70.10.124:5000/total-dibayar", {
+        axios.get("http://10.70.10.120:5000/total-dibayar", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
         }), 
-        axios.get("http://10.70.10.124:5000/plafond-tersedia", {
+        axios.get("http://10.70.10.120:5000/plafond-tersedia", {
           headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -228,7 +228,7 @@ function RiwayatPengajuanKaryawan() {
 
   const getPinjaman = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.124:5000/pinjaman", {
+      const response = await axios.get("http://10.70.10.120:5000/pinjaman", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -249,7 +249,7 @@ function RiwayatPengajuanKaryawan() {
 
   const getPinjamanData = async () =>{
     try {
-      const response = await axios.get("http://10.70.10.124:5000/pinjaman-data", {
+      const response = await axios.get("http://10.70.10.120:5000/pinjaman-data", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -265,7 +265,7 @@ function RiwayatPengajuanKaryawan() {
   
   const getAntrean = async () => {
     try {
-      const response = await axios.get("http://10.70.10.124:5000/antrean-pengajuan", {
+      const response = await axios.get("http://10.70.10.120:5000/antrean-pengajuan", {
         headers: {
             Authorization: `Bearer ${token}`,
         },
@@ -307,12 +307,37 @@ const findNomorAntrean = (id_pinjaman) => {
   return antreanRecord ? antreanRecord.nomor_antrean : '-';
 };
 
+  const handleDeleteFile = async(pinjaman) => {
+   try {
+    const response = await axios.delete(`http://10.70.10.120:5000/delete-file/${pinjaman.id_pinjaman}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    toast.success('File berhasil dihapus.', {
+      position: "top-right", 
+      autoClose: 5000,
+      hideProgressBar: true,
+    });
+
+    getPinjaman(); 
+    getAntrean();
+   } catch (error) {
+    console.error('Error deleting file:', error.response ? error.response.data : error.message);
+      toast.error('Gagal menghapus file.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: true,
+      });
+   }
+  }
+
 
   const handleBatalPengajuan = async (pinjaman) => {
     try {
-      // console.log('Mencoba mengupdate status pengajuan:', pinjaman);
-  
-      const response = await axios.put(`http://10.70.10.124:5000/batal-pengajuan/${pinjaman.id_pinjaman}`, {
+      handleDeleteFile(pinjaman);
+      const response = await axios.put(`http://10.70.10.120:5000/batal-pengajuan/${pinjaman.id_pinjaman}`, {
         status_pengajuan: "Dibatalkan",
         status_transfer: "Dibatalkan",
       }, {
@@ -321,7 +346,6 @@ const findNomorAntrean = (id_pinjaman) => {
       },
       });
   
-      // console.log('Pengajuan berhasil dibatalkan:', response.data);
       setShowModal(false);
  
       toast.success('Pengajuan berhasil dibatalkan!', {
@@ -332,6 +356,7 @@ const findNomorAntrean = (id_pinjaman) => {
   
       getPinjaman(); 
       getAntrean();
+
   
     } catch (error) {
       console.error('Error updating status_pengajuan:', error.response ? error.response.data : error.message);
@@ -387,7 +412,7 @@ const findNomorAntrean = (id_pinjaman) => {
     // console.log('Id pinjaman: ', pinjaman.id_pinjaman);
     // console.log('Form data: ', formData);
 
-    // fetch("http://10.70.10.124:5000/upload-pernyataan", {
+    // fetch("http://10.70.10.120:5000/upload-pernyataan", {
     //     method: "PUT",
     //     body: formData,
     //     headers: {
@@ -425,7 +450,7 @@ const findNomorAntrean = (id_pinjaman) => {
           formData.append("pdf-file", file);
           formData.append("id_pinjaman", selectedPinjaman.id_pinjaman)
 
-          const uploadResponse = await fetch("http://10.70.10.124:5000/upload-pernyataan", {
+          const uploadResponse = await fetch("http://10.70.10.120:5000/upload-pernyataan", {
             method: "PUT",
             body: formData,
             headers: {
@@ -442,7 +467,7 @@ const findNomorAntrean = (id_pinjaman) => {
           const uploadFilePath = uploadData.filePath;
           console.log('File path yang berhasil diupload: ', uploadFilePath);
 
-          const response = await axios.put(`http://10.70.10.124:5000/unggah-permohonan/${selectedPinjaman.id_pinjaman}`, {
+          const response = await axios.put(`http://10.70.10.120:5000/unggah-permohonan/${selectedPinjaman.id_pinjaman}`, {
             filepath_pernyataan: uploadFilePath,
           }, {
             headers: {
@@ -708,10 +733,10 @@ const findNomorAntrean = (id_pinjaman) => {
           Yakin ingin membatalkan pengajuan pinjaman?
         </Modal.Body>
         <Modal.Footer className="mb-4">
-          <Button variant="danger"  onClick={() => handleBatalPengajuan(selectedPinjaman)}>
+          <Button variant="success"  onClick={() => handleBatalPengajuan(selectedPinjaman)}>
             Ya
           </Button>
-          <Button variant="success" onClick={() => setShowModal(false)}>
+          <Button variant="danger" onClick={() => setShowModal(false)}>
             Tidak
           </Button>
         </Modal.Footer>
